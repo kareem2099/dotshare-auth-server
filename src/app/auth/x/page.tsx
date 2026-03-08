@@ -12,9 +12,7 @@ function generateCodeVerifier(): string {
 }
 
 async function generateCodeChallenge(verifier: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(verifier);
-  const digest = await crypto.subtle.digest('SHA-256', data);
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
   return btoa(String.fromCharCode(...new Uint8Array(digest)))
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
@@ -37,18 +35,14 @@ export default function XAuth() {
       setError('Please enter your Client ID');
       return;
     }
-
     setLoading(true);
     setError('');
-
     const codeVerifier = generateCodeVerifier();
     const codeChallenge = await generateCodeChallenge(codeVerifier);
     const state = generateState();
-
     sessionStorage.setItem('x_code_verifier', codeVerifier);
     sessionStorage.setItem('x_state', state);
     sessionStorage.setItem('x_client_id', clientId.trim());
-
     const authUrl = new URL('https://twitter.com/i/oauth2/authorize');
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('client_id', clientId.trim());
@@ -57,7 +51,6 @@ export default function XAuth() {
     authUrl.searchParams.set('state', state);
     authUrl.searchParams.set('code_challenge', codeChallenge);
     authUrl.searchParams.set('code_challenge_method', 'S256');
-
     window.location.href = authUrl.toString();
   };
 
@@ -68,13 +61,13 @@ export default function XAuth() {
       alignItems: 'center',
       justifyContent: 'center',
       padding: '40px 24px',
-      background: 'radial-gradient(ellipse 80% 60% at 50% -20%, #111111 0%, #080808 60%)',
+      background: 'var(--gradient-x)',
     }}>
       {[
-        { top: 32, left: 32, borderTop: '1px solid #222', borderLeft: '1px solid #222' },
-        { top: 32, right: 32, borderTop: '1px solid #222', borderRight: '1px solid #222' },
-        { bottom: 32, left: 32, borderBottom: '1px solid #222', borderLeft: '1px solid #222' },
-        { bottom: 32, right: 32, borderBottom: '1px solid #222', borderRight: '1px solid #222' },
+        { top: 32,    left: 32,  borderTop:    `1px solid var(--x-corner)`, borderLeft:   `1px solid var(--x-corner)` },
+        { top: 32,    right: 32, borderTop:    `1px solid var(--x-corner)`, borderRight:  `1px solid var(--x-corner)` },
+        { bottom: 32, left: 32,  borderBottom: `1px solid var(--x-corner)`, borderLeft:   `1px solid var(--x-corner)` },
+        { bottom: 32, right: 32, borderBottom: `1px solid var(--x-corner)`, borderRight:  `1px solid var(--x-corner)` },
       ].map((style, i) => (
         <div key={i} style={{ position: 'fixed', width: 48, height: 48, ...style }} />
       ))}
@@ -85,8 +78,8 @@ export default function XAuth() {
           onClick={() => router.push('/')}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
-            fontFamily: 'DM Mono, monospace', fontSize: 10,
-            color: t.textDim, letterSpacing: '0.2em', textTransform: 'uppercase',
+            fontFamily: t.mono, fontSize: 10, color: t.textDim,
+            letterSpacing: '0.2em', textTransform: 'uppercase',
             marginBottom: 48, background: 'none', border: 'none',
             cursor: 'pointer', padding: 0, transition: 'color 0.2s',
           }}
@@ -96,7 +89,6 @@ export default function XAuth() {
           ← Back
         </button>
 
-        {/* Header */}
         <div style={{
           marginBottom: 48,
           animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards',
@@ -104,24 +96,22 @@ export default function XAuth() {
         }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 10,
-            padding: '8px 16px',
-            background: p.bg,
-            border: `1px solid ${p.border}`,
-            borderRadius: 2, marginBottom: 24,
+            padding: '8px 16px', background: p.bg,
+            border: `1px solid ${p.border}`, borderRadius: 2, marginBottom: 24,
           }}>
             <div style={{
               width: 24, height: 24, background: p.color, borderRadius: 3,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#000', fontFamily: 'serif', fontSize: 13, fontWeight: 700,
+              color: 'var(--bg)', fontFamily: 'serif', fontSize: 13, fontWeight: 700,
             }}>𝕏</div>
             <span style={{
-              fontFamily: 'DM Mono, monospace', fontSize: 10,
-              color: p.color, letterSpacing: '0.2em', textTransform: 'uppercase',
+              fontFamily: t.mono, fontSize: 10, color: p.color,
+              letterSpacing: '0.2em', textTransform: 'uppercase',
             }}>OAuth 2.0 PKCE</span>
           </div>
 
           <h1 style={{
-            fontFamily: 'Cormorant Garamond, serif',
+            fontFamily: t.serif,
             fontSize: 'clamp(36px, 7vw, 52px)',
             fontWeight: 300, letterSpacing: '-0.02em',
             lineHeight: 1.1, color: t.text, marginBottom: 12,
@@ -131,15 +121,13 @@ export default function XAuth() {
           </h1>
 
           <p style={{
-            fontFamily: 'DM Mono, monospace', fontSize: 11,
+            fontFamily: t.mono, fontSize: 11,
             color: t.textDim, letterSpacing: '0.1em', lineHeight: 1.8,
           }}>
-            Enter your Client ID from the<br />
-            X Developer Portal
+            Enter your Client ID from the<br />X Developer Portal
           </p>
         </div>
 
-        {/* Form */}
         <div style={{
           display: 'flex', flexDirection: 'column', gap: 16,
           animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s forwards',
@@ -147,8 +135,8 @@ export default function XAuth() {
         }}>
           <div>
             <label style={{
-              display: 'block', fontFamily: 'DM Mono, monospace',
-              fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase',
+              display: 'block', fontFamily: t.mono, fontSize: 10,
+              letterSpacing: '0.2em', textTransform: 'uppercase',
               color: t.textDim, marginBottom: 8,
             }}>Client ID</label>
             <input
@@ -159,16 +147,16 @@ export default function XAuth() {
               placeholder="From X Developer Portal"
               style={{
                 width: '100%', padding: '14px 16px',
-                background: t.surface, border: '1px solid #1f1f1f',
+                background: t.surface, border: `1px solid ${t.border}`,
                 borderRadius: 2, color: t.text,
-                fontFamily: 'DM Mono, monospace', fontSize: 13,
+                fontFamily: t.mono, fontSize: 13,
                 outline: 'none', transition: 'border-color 0.2s',
               }}
-                onFocus={e => (e.target.style.borderColor = p.focus)}
-                onBlur={e => (e.target.style.borderColor = t.border)}
+              onFocus={e => (e.target.style.borderColor = p.focus)}
+              onBlur={e => (e.target.style.borderColor = t.border)}
             />
             <p style={{
-              fontFamily: 'DM Mono, monospace', fontSize: 10,
+              fontFamily: t.mono, fontSize: 10,
               color: t.textDimmer, letterSpacing: '0.1em', marginTop: 8,
             }}>
               No Client Secret needed — PKCE handles security
@@ -178,12 +166,10 @@ export default function XAuth() {
           {error && (
             <div style={{
               padding: '12px 16px', background: t.errorBg,
-              border: '1px solid #ff000030', borderRadius: 2,
-              fontFamily: 'DM Mono, monospace', fontSize: 11,
+              border: `1px solid ${t.errorBorder}`, borderRadius: 2,
+              fontFamily: t.mono, fontSize: 11,
               color: t.error, letterSpacing: '0.05em',
-            }}>
-              {error}
-            </div>
+            }}>{error}</div>
           )}
 
           <button
@@ -191,16 +177,14 @@ export default function XAuth() {
             disabled={loading}
             style={{
               marginTop: 8, padding: '16px 24px',
-              background: loading ? t.surfaceHoverBorder : p.color,
-              border: `1px solid ${p.color}`,
-              borderRadius: 2,
-              color: loading ? `${p.color}80` : '#000',
-              fontFamily: 'DM Mono, monospace', fontSize: 11,
+              background: loading ? t.surface : p.color,
+              border: `1px solid ${p.color}`, borderRadius: 2,
+              color: loading ? p.color : 'var(--bg)',
+              fontFamily: t.mono, fontSize: 11,
               letterSpacing: '0.2em', textTransform: 'uppercase',
               cursor: loading ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s',
-              display: 'flex', alignItems: 'center',
-              justifyContent: 'center', gap: 10,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
             }}
             onMouseEnter={e => { if (!loading) e.currentTarget.style.background = p.hover; }}
             onMouseLeave={e => { if (!loading) e.currentTarget.style.background = p.color; }}
@@ -209,8 +193,8 @@ export default function XAuth() {
               <>
                 <span style={{
                   width: 12, height: 12,
-                  border: '1px solid #333',
-                  borderTop: '1px solid #888',
+                  border: `1px solid ${t.borderLight}`,
+                  borderTop: `1px solid ${p.color}`,
                   borderRadius: '50%',
                   animation: 'spin 0.8s linear infinite',
                   display: 'inline-block',
@@ -221,19 +205,17 @@ export default function XAuth() {
           </button>
         </div>
 
-        {/* Scopes */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 16,
-          margin: '32px 0',
+          display: 'flex', alignItems: 'center', gap: 16, margin: '32px 0',
           animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.2s forwards',
           opacity: 0,
         }}>
-          <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }} />
+          <div style={{ flex: 1, height: '1px', background: t.borderMedium }} />
           <span style={{
-            fontFamily: 'DM Mono, monospace', fontSize: 10,
+            fontFamily: t.mono, fontSize: 10,
             color: t.textDimmest, letterSpacing: '0.2em',
           }}>Required Scopes</span>
-          <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }} />
+          <div style={{ flex: 1, height: '1px', background: t.borderMedium }} />
         </div>
 
         <div style={{
@@ -243,10 +225,10 @@ export default function XAuth() {
         }}>
           {['tweet.read', 'tweet.write', 'users.read', 'offline.access'].map(scope => (
             <span key={scope} style={{
-              padding: '4px 10px',
-              background: p.bg, border: `1px solid ${p.border}`,
-              borderRadius: 2, fontFamily: 'DM Mono, monospace',
-              fontSize: 10, color: p.color, letterSpacing: '0.1em',
+              padding: '4px 10px', background: p.bg,
+              border: `1px solid ${p.border}`, borderRadius: 2,
+              fontFamily: t.mono, fontSize: 10,
+              color: p.color, letterSpacing: '0.1em',
             }}>{scope}</span>
           ))}
         </div>

@@ -22,6 +22,7 @@
   /* Borders */
   --border: #1f1f1f;
   --border-light: #2a2a2a;
+  --border-medium: #1a1a1a;
   --border-hover: #c9a84c44;
 
   /* Text */
@@ -55,23 +56,98 @@
   --x-bg: #ffffff08;
   --x-border: #ffffff15;
   --x-focus: #ffffff25;
-  --x-hover: #ffffff;
+  --x-hover: #333333;
+  --x-corner: #222222;
 
   --facebook: #1877f2;
   --facebook-bg: #1877f215;
   --facebook-border: #1877f230;
   --facebook-focus: #1877f250;
   --facebook-hover: #1464cc;
+  --facebook-corner: #1a2a3a;
 
   --reddit: #ff4500;
   --reddit-bg: #ff450015;
   --reddit-border: #ff450030;
   --reddit-focus: #ff450050;
   --reddit-hover: #cc3700;
+  --reddit-corner: #2a1a0a;
 
-  /* Fonts */
   --font-serif: 'Cormorant Garamond', serif;
   --font-mono: 'DM Mono', monospace;
+
+  --grain-opacity: 0.03;
+  --spinner-bg: #2a2a2a;
+  --gradient-home: radial-gradient(ellipse 80% 60% at 50% -20%, #1a1508 0%, #080808 60%);
+  --gradient-linkedin: radial-gradient(ellipse 80% 60% at 50% -20%, #0a1628 0%, #080808 60%);
+  --gradient-success:  radial-gradient(ellipse 80% 60% at 50% -20%, #0a2818 0%, #080808 60%);
+  --gradient-error:    radial-gradient(ellipse 80% 60% at 50% -20%, #280a0a 0%, #080808 60%);
+  --gradient-loading:  radial-gradient(ellipse 80% 60% at 50% -20%, #1a1508 0%, #080808 60%);
+  --gradient-facebook: radial-gradient(ellipse 80% 60% at 50% -20%, #0a1628 0%, #080808 60%);
+  --gradient-reddit: radial-gradient(ellipse 80% 60% at 50% -20%, #1a0d00 0%, #080808 60%);
+  --gradient-x: radial-gradient(ellipse 80% 60% at 50% -20%, #111111 0%, #080808 60%);
+}
+
+/* ── Light Mode ──────────────────────────────── */
+[data-theme="light"] {
+  --bg: #faf8f5;
+  --surface: #ffffff;
+  --surface-2: #f5f2ed;
+  --surface-hover: #fdf8ee;
+
+  --border: #e8e4de;
+  --border-light: #d4cfc8;
+  --border-medium: #e0dbd4;
+  --border-hover: #c9a84c66;
+
+  --text: #1a1816;
+  --text-hover: #0d0c0b;
+  --text-muted: #6b6660;
+  --text-dim: #7a7570;
+  --text-dimmer: #9a9590;
+  --text-dimmest: #c4bfba;
+
+  --success: #2e7d32;
+  --success-bg: #2e7d3215;
+  --success-border: #2e7d3240;
+  --success-border-dim: #2e7d3240;
+  --error: #c62828;
+  --error-bg: #c6282810;
+  --error-border: #c6282830;
+  --error-border-dim: #c6282840;
+
+  --linkedin-bg: #0a66c210;
+  --linkedin-border: #0a66c225;
+  --linkedin-focus: #0a66c240;
+  --linkedin-corner: #cce0f5;
+
+  --x: #000000;
+  --x-bg: #00000008;
+  --x-border: #00000015;
+  --x-focus: #00000025;
+  --x-hover: #333333;
+  --x-corner: #e0e0e0;
+
+  --facebook-bg: #1877f210;
+  --facebook-border: #1877f225;
+  --facebook-focus: #1877f240;
+  --facebook-corner: #cce0ff;
+
+  --reddit-bg: #ff450010;
+  --reddit-border: #ff450025;
+  --reddit-focus: #ff450040;
+  --reddit-corner: #ffe0d4;
+
+  --grain-opacity: 0.015;
+  --spinner-bg: #e8e4de;
+  --gradient-home: radial-gradient(ellipse 80% 60% at 50% -20%, #f5eed8 0%, #faf8f5 60%);
+  --gradient-linkedin: radial-gradient(ellipse 80% 60% at 50% -20%, #deeeff 0%, #faf8f5 60%);
+  --gradient-success:  radial-gradient(ellipse 80% 60% at 50% -20%, #e8f5e9 0%, #faf8f5 60%);
+  --gradient-error:    radial-gradient(ellipse 80% 60% at 50% -20%, #ffebee 0%, #faf8f5 60%);
+  --gradient-loading:  radial-gradient(ellipse 80% 60% at 50% -20%, #f5eed8 0%, #faf8f5 60%);
+  --gradient-facebook: radial-gradient(ellipse 80% 60% at 50% -20%, #ddeeff 0%, #faf8f5 60%);
+  --gradient-reddit: radial-gradient(ellipse 80% 60% at 50% -20%, #fff0e8 0%, #faf8f5 60%);
+  --gradient-x: radial-gradient(ellipse 80% 60% at 50% -20%, #f0f0f0 0%, #faf8f5 60%);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -81,9 +157,10 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* Grain overlay */
@@ -91,9 +168,14 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: var(--grain-opacity);
   pointer-events: none;
   z-index: 100;
+}
+
+[data-theme="light"] body::before {
+  opacity: 0.02;
 }
 
 /* Gold shimmer animation */

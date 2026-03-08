@@ -7,7 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.0.0] — 2025-03-07
+## [1.1.0] — 2026-03-08
+
+### Added
+- Dark / Light mode toggle with system preference detection and `localStorage` persistence
+- `ThemeToggle` component — animated gold knob sliding between ☽ and ☀
+- CSS variables for light mode under `[data-theme="light"]` in `globals.css`
+- Gradient CSS variables for all platform pages (`--gradient-home`, `--gradient-linkedin`, `--gradient-x`, `--gradient-facebook`, `--gradient-reddit`, `--gradient-success`, `--gradient-error`, `--gradient-loading`)
+- Platform-specific corner color variables (`--linkedin-corner`, `--x-corner`, `--facebook-corner`, `--reddit-corner`) for dark and light themes
+- `--border-medium`, `--spinner-bg`, `--grain-opacity` added to token system
+
+### Changed
+- All hardcoded hex colors replaced with CSS token system via `t.*` and `t.platform()`
+- `PlatformCard` now derives color from `t.platform(platformKey)` internally — `color` prop removed
+- `body::before` grain overlay opacity now controlled via CSS `opacity` property (fixes full-opacity grain bug in light mode)
+- All page backgrounds now use `var(--gradient-*)` CSS variables instead of hardcoded `radial-gradient` strings
+- Corner brackets on all pages now use `var(--*-corner)` variables
+- Input border defaults now use `t.border` token instead of `#1f1f1f`
+- Spinner borders now use `p.border` and `p.color` tokens instead of hardcoded platform hex values
+- `lib/platforms.ts` — removed hardcoded `color` field; colors are now exclusively managed via CSS variables
+
+### Fixed
+- X platform badge invisible in dark mode (was `#111111` on dark background — fixed to `#e7e7e7`)
+- Light mode page backgrounds were still dark (hardcoded gradients not responding to theme)
+- Grain overlay showing at full opacity in light mode
+
+---
+
+## [1.0.0] — 2026-03-07
 
 ### Added
 
@@ -33,12 +60,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Success state with token preview and one-click copy
 - Error state with descriptive message and retry button
 - `PlatformCard` component with hover accent bar and animated arrow
-- `ThemeToggle` component — dark/light mode with system preference detection and localStorage persistence
 
 #### Architecture
 - CSS token system — all colors defined as CSS custom properties in `globals.css`
 - `lib/tokens.ts` — TypeScript references to all CSS variables, zero magic strings in components
-- `lib/platforms.ts` — centralized platform config (name, color, scopes, auth URL)
+- `lib/platforms.ts` — centralized platform config (name, icon, scopes, auth URL)
 - `lib/pkce.ts` — server-side PKCE helpers (`generateCodeVerifier`, `generateCodeChallenge`, `generateState`)
 - `.env.example` for clean onboarding
 - `.gitignore` configured to exclude secrets while allowing `.env.example`

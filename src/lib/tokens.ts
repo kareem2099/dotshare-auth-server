@@ -8,6 +8,7 @@ export const t = {
 
   // ── Borders ───────────────────────────────
   border:      'var(--border)',
+  borderMedium: 'var(--border-medium)',
   borderLight: 'var(--border-light)',
   borderHover: 'var(--border-hover)',
 
@@ -34,7 +35,6 @@ export const t = {
   errorBg:       'var(--error-bg)',
   errorBorder:   'var(--error-border)',
   errorBorderDim:     'var(--error-border-dim)',
-
 
   // ── Fonts ─────────────────────────────────
   serif:       'var(--font-serif)',

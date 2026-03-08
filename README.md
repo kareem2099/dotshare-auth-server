@@ -1,6 +1,6 @@
 # DotShare Auth
 
-> OAuth 2.0 Authentication Portal for the [DotShare](https://github.com/freerave/dotshare) VS Code Extension
+> OAuth 2.0 Authentication Portal for the [DotShare](https://github.com/kareem2099/dotshare) VS Code Extension
 
 A clean, luxury-designed Next.js application that handles OAuth 2.0 flows for all social platforms supported by DotShare. Users authenticate once, copy their tokens, and paste them into the extension — no manual API key hunting required.
 
@@ -43,8 +43,8 @@ A clean, luxury-designed Next.js application that handles OAuth 2.0 flows for al
 ### Installation
 
 ```bash
-git clone https://github.com/freerave/dotshare-auth.git
-cd dotshare-auth
+git clone https://github.com/kareem2099/dotshare-auth-server.git
+cd dotshare-auth-server
 npm install
 ```
 
@@ -165,7 +165,7 @@ src/
       ThemeToggle.tsx           # Dark/light mode toggle
   lib/
     tokens.ts                   # CSS variable references
-    platforms.ts                # Platform config (colors, scopes)
+    platforms.ts                # Platform config (scopes, auth URLs)
     pkce.ts                     # PKCE helpers (server-side)
 ```
 
@@ -183,4 +183,4 @@ src/
 
 ## License
 
-MIT © [FreeRave](https://github.com/freerave)
+MIT © [kareem2099](https://github.com/kareem2099)

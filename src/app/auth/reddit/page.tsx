@@ -23,15 +23,12 @@ export default function RedditAuth() {
       setError('Please enter both Client ID and Client Secret');
       return;
     }
-
     setLoading(true);
     setError('');
-
     const state = generateState();
     sessionStorage.setItem('reddit_client_id', clientId.trim());
     sessionStorage.setItem('reddit_client_secret', clientSecret.trim());
     sessionStorage.setItem('reddit_state', state);
-
     const authUrl = new URL('https://www.reddit.com/api/v1/authorize');
     authUrl.searchParams.set('client_id', clientId.trim());
     authUrl.searchParams.set('response_type', 'code');
@@ -39,7 +36,6 @@ export default function RedditAuth() {
     authUrl.searchParams.set('redirect_uri', `${window.location.origin}/auth/reddit/callback`);
     authUrl.searchParams.set('duration', 'permanent');
     authUrl.searchParams.set('scope', 'submit read identity');
-
     window.location.href = authUrl.toString();
   };
 
@@ -50,13 +46,13 @@ export default function RedditAuth() {
       alignItems: 'center',
       justifyContent: 'center',
       padding: '40px 24px',
-      background: 'radial-gradient(ellipse 80% 60% at 50% -20%, #1a0d00 0%, #080808 60%)',
+      background: 'var(--gradient-reddit)',
     }}>
       {[
-        { top: 32, left: 32, borderTop: '1px solid #2a1a0a', borderLeft: '1px solid #2a1a0a' },
-        { top: 32, right: 32, borderTop: '1px solid #2a1a0a', borderRight: '1px solid #2a1a0a' },
-        { bottom: 32, left: 32, borderBottom: '1px solid #2a1a0a', borderLeft: '1px solid #2a1a0a' },
-        { bottom: 32, right: 32, borderBottom: '1px solid #2a1a0a', borderRight: '1px solid #2a1a0a' },
+        { top: 32,    left: 32,  borderTop:    `1px solid var(--reddit-corner)`, borderLeft:   `1px solid var(--reddit-corner)` },
+        { top: 32,    right: 32, borderTop:    `1px solid var(--reddit-corner)`, borderRight:  `1px solid var(--reddit-corner)` },
+        { bottom: 32, left: 32,  borderBottom: `1px solid var(--reddit-corner)`, borderLeft:   `1px solid var(--reddit-corner)` },
+        { bottom: 32, right: 32, borderBottom: `1px solid var(--reddit-corner)`, borderRight:  `1px solid var(--reddit-corner)` },
       ].map((style, i) => (
         <div key={i} style={{ position: 'fixed', width: 48, height: 48, ...style }} />
       ))}
@@ -67,8 +63,8 @@ export default function RedditAuth() {
           onClick={() => router.push('/')}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
-            fontFamily: 'DM Mono, monospace', fontSize: 10,
-            color: t.textDim, letterSpacing: '0.2em', textTransform: 'uppercase',
+            fontFamily: t.mono, fontSize: 10, color: t.textDim,
+            letterSpacing: '0.2em', textTransform: 'uppercase',
             marginBottom: 48, background: 'none', border: 'none',
             cursor: 'pointer', padding: 0, transition: 'color 0.2s',
           }}
@@ -78,7 +74,6 @@ export default function RedditAuth() {
           ← Back
         </button>
 
-        {/* Header */}
         <div style={{
           marginBottom: 48,
           animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards',
@@ -86,24 +81,22 @@ export default function RedditAuth() {
         }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 10,
-            padding: '8px 16px',
-            background: p.bg,
-            border: `1px solid ${p.border}`,
-            borderRadius: 2, marginBottom: 24,
+            padding: '8px 16px', background: p.bg,
+            border: `1px solid ${p.border}`, borderRadius: 2, marginBottom: 24,
           }}>
             <div style={{
               width: 24, height: 24, background: p.color, borderRadius: 3,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'white', fontFamily: 'DM Mono, monospace', fontSize: 10, fontWeight: 700,
+              color: 'white', fontFamily: t.mono, fontSize: 10, fontWeight: 700,
             }}>r/</div>
             <span style={{
-              fontFamily: 'DM Mono, monospace', fontSize: 10,
-              color: p.color, letterSpacing: '0.2em', textTransform: 'uppercase',
+              fontFamily: t.mono, fontSize: 10, color: p.color,
+              letterSpacing: '0.2em', textTransform: 'uppercase',
             }}>Reddit OAuth 2.0</span>
           </div>
 
           <h1 style={{
-            fontFamily: 'Cormorant Garamond, serif',
+            fontFamily: t.serif,
             fontSize: 'clamp(36px, 7vw, 52px)',
             fontWeight: 300, letterSpacing: '-0.02em',
             lineHeight: 1.1, color: t.text, marginBottom: 12,
@@ -111,34 +104,31 @@ export default function RedditAuth() {
             Connect<br />
             <span style={{
               background: `linear-gradient(90deg, ${p.color}, #ff7043)`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             }}>Reddit</span>
           </h1>
 
           <p style={{
-            fontFamily: 'DM Mono, monospace', fontSize: 11,
+            fontFamily: t.mono, fontSize: 11,
             color: t.textDim, letterSpacing: '0.1em', lineHeight: 1.8,
           }}>
-            Enter your app credentials from the<br />
-            Reddit Developer Portal
+            Enter your app credentials from the<br />Reddit Developer Portal
           </p>
         </div>
 
-        {/* Form */}
         <div style={{
           display: 'flex', flexDirection: 'column', gap: 16,
           animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s forwards',
           opacity: 0,
         }}>
           {[
-            { label: 'Client ID', value: clientId, setter: setClientId, type: 'text', placeholder: 'From Reddit App Preferences' },
+            { label: 'Client ID',     value: clientId,     setter: setClientId,     type: 'text',     placeholder: 'From Reddit App Preferences' },
             { label: 'Client Secret', value: clientSecret, setter: setClientSecret, type: 'password', placeholder: '••••••••••••••••' },
           ].map(({ label, value, setter, type, placeholder }) => (
             <div key={label}>
               <label style={{
-                display: 'block', fontFamily: 'DM Mono, monospace',
-                fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase',
+                display: 'block', fontFamily: t.mono, fontSize: 10,
+                letterSpacing: '0.2em', textTransform: 'uppercase',
                 color: t.textDim, marginBottom: 8,
               }}>{label}</label>
               <input
@@ -149,9 +139,9 @@ export default function RedditAuth() {
                 placeholder={placeholder}
                 style={{
                   width: '100%', padding: '14px 16px',
-                  background: t.surface, border: '1px solid #1f1f1f',
+                  background: t.surface, border: `1px solid ${t.border}`,
                   borderRadius: 2, color: t.text,
-                  fontFamily: 'DM Mono, monospace', fontSize: 13,
+                  fontFamily: t.mono, fontSize: 13,
                   outline: 'none', transition: 'border-color 0.2s',
                 }}
                 onFocus={e => (e.target.style.borderColor = p.focus)}
@@ -161,7 +151,7 @@ export default function RedditAuth() {
           ))}
 
           <p style={{
-            fontFamily: 'DM Mono, monospace', fontSize: 10,
+            fontFamily: t.mono, fontSize: 10,
             color: t.textDimmer, letterSpacing: '0.1em',
           }}>
             Processed locally · Never stored on any server
@@ -170,8 +160,8 @@ export default function RedditAuth() {
           {error && (
             <div style={{
               padding: '12px 16px', background: t.errorBg,
-              border: '1px solid #ff000030', borderRadius: 2,
-              fontFamily: 'DM Mono, monospace', fontSize: 11,
+              border: `1px solid ${t.errorBorder}`, borderRadius: 2,
+              fontFamily: t.mono, fontSize: 11,
               color: t.error, letterSpacing: '0.05em',
             }}>{error}</div>
           )}
@@ -181,15 +171,14 @@ export default function RedditAuth() {
             disabled={loading}
             style={{
               marginTop: 8, padding: '16px 24px',
-              background: loading ? `${p.bg}` : p.color,
+              background: loading ? p.bg : p.color,
               border: `1px solid ${p.color}`, borderRadius: 2,
-              color: loading ? `${p.color}80` : 'white',
-              fontFamily: 'DM Mono, monospace', fontSize: 11,
+              color: loading ? p.color : 'white',
+              fontFamily: t.mono, fontSize: 11,
               letterSpacing: '0.2em', textTransform: 'uppercase',
               cursor: loading ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s',
-              display: 'flex', alignItems: 'center',
-              justifyContent: 'center', gap: 10,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
             }}
             onMouseEnter={e => { if (!loading) e.currentTarget.style.background = p.hover; }}
             onMouseLeave={e => { if (!loading) e.currentTarget.style.background = p.color; }}
@@ -198,8 +187,8 @@ export default function RedditAuth() {
               <>
                 <span style={{
                   width: 12, height: 12,
-                  border: '1px solid #ff450060',
-                  borderTop: '1px solid #ff4500',
+                  border: `1px solid ${p.border}`,
+                  borderTop: `1px solid ${p.color}`,
                   borderRadius: '50%',
                   animation: 'spin 0.8s linear infinite',
                   display: 'inline-block',
@@ -210,19 +199,17 @@ export default function RedditAuth() {
           </button>
         </div>
 
-        {/* Scopes */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 16,
-          margin: '32px 0',
+          display: 'flex', alignItems: 'center', gap: 16, margin: '32px 0',
           animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.2s forwards',
           opacity: 0,
         }}>
-          <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }} />
+          <div style={{ flex: 1, height: '1px', background: t.borderMedium }} />
           <span style={{
-            fontFamily: 'DM Mono, monospace', fontSize: 10,
+            fontFamily: t.mono, fontSize: 10,
             color: t.textDimmest, letterSpacing: '0.2em',
           }}>Required Scopes</span>
-          <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }} />
+          <div style={{ flex: 1, height: '1px', background: t.borderMedium }} />
         </div>
 
         <div style={{
@@ -232,10 +219,10 @@ export default function RedditAuth() {
         }}>
           {['submit', 'read', 'identity'].map(scope => (
             <span key={scope} style={{
-              padding: '4px 10px',
-              background: p.bg, border: `1px solid ${p.border}`,
-              borderRadius: 2, fontFamily: 'DM Mono, monospace',
-              fontSize: 10, color: p.color, letterSpacing: '0.1em',
+              padding: '4px 10px', background: p.bg,
+              border: `1px solid ${p.border}`, borderRadius: 2,
+              fontFamily: t.mono, fontSize: 10,
+              color: p.color, letterSpacing: '0.1em',
             }}>{scope}</span>
           ))}
         </div>

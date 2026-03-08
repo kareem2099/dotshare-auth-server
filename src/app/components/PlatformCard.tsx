@@ -4,10 +4,11 @@ import { t } from '@/lib/tokens';
 import Link from 'next/link';
 import { useState } from 'react';
 
+type PlatformKey = 'linkedin' | 'x' | 'facebook' | 'reddit';
+
 interface PlatformCardProps {
-  platformKey: string;
+  platformKey: PlatformKey;
   name: string;
-  color: string;
   description: string;
   symbol: string;
   index: number;
@@ -16,12 +17,12 @@ interface PlatformCardProps {
 export default function PlatformCard({
   platformKey,
   name,
-  color,
   description,
   symbol,
   index,
 }: PlatformCardProps) {
   const [hovered, setHovered] = useState(false);
+  const p = t.platform(platformKey);
 
   return (
     <Link
@@ -32,7 +33,7 @@ export default function PlatformCard({
         gap: 20,
         padding: '20px 24px',
         background: hovered ? t.surfaceHover : t.surface,
-        border: `1px solid ${hovered ? t.borderHover : t.surfaceHoverBorder}`,
+        border: `1px solid ${hovered ? t.borderHover : t.borderMedium}`,
         textDecoration: 'none',
         position: 'relative',
         overflow: 'hidden',
@@ -48,7 +49,7 @@ export default function PlatformCard({
         position: 'absolute',
         left: 0, top: 0, bottom: 0,
         width: 2,
-        background: `linear-gradient(180deg, transparent, ${color}80, transparent)`,
+        background: `linear-gradient(180deg, transparent, ${p.color}, transparent)`,
         opacity: hovered ? 1 : 0,
         transition: 'opacity 0.2s',
       }} />
@@ -58,15 +59,15 @@ export default function PlatformCard({
         width: 40,
         height: 40,
         borderRadius: 4,
-        background: color + '18',
+        background: p.bg,
         borderWidth: '1px',
         borderStyle: 'solid',
-        borderColor: hovered ? color + '60' : color + '30',
+        borderColor: hovered ? p.focus : p.border,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: color,
-        fontFamily: 'DM Mono, monospace',
+        color: p.color,
+        fontFamily: t.mono,
         fontSize: 13,
         flexShrink: 0,
         transition: 'border-color 0.2s',
@@ -77,7 +78,7 @@ export default function PlatformCard({
       {/* Text */}
       <div style={{ flex: 1 }}>
         <div style={{
-          fontFamily: 'Cormorant Garamond, serif',
+          fontFamily: t.serif,
           fontSize: 20,
           fontWeight: 400,
           color: hovered ? t.textHover : t.text,
@@ -87,7 +88,7 @@ export default function PlatformCard({
           {name}
         </div>
         <div style={{
-          fontFamily: 'DM Mono, monospace',
+          fontFamily: t.mono,
           fontSize: 10,
           color: hovered ? t.textMuted : t.textDim,
           letterSpacing: '0.15em',
@@ -101,7 +102,7 @@ export default function PlatformCard({
 
       {/* Arrow */}
       <div style={{
-        fontFamily: 'DM Mono, monospace',
+        fontFamily: t.mono,
         fontSize: 16,
         color: hovered ? t.gold : t.textDimmest,
         transition: 'color 0.2s, transform 0.2s',

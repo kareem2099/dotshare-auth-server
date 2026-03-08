@@ -24,7 +24,6 @@ function CallbackContent() {
         setErrorMsg(errorParam === 'access_denied' ? 'Access was denied by the user.' : errorParam);
         return;
       }
-
       if (!code || !state) {
         setStatus('error');
         setErrorMsg('No authorization code received');
@@ -52,15 +51,11 @@ function CallbackContent() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            code,
-            clientId,
-            clientSecret,
+            code, clientId, clientSecret,
             redirectUri: `${window.location.origin}/auth/reddit/callback`,
           }),
         });
-
         const data = await res.json();
-
         if (data.access_token) {
           setAccessToken(data.access_token);
           setRefreshToken(data.refresh_token || '');
@@ -76,7 +71,6 @@ function CallbackContent() {
         setErrorMsg('Network error occurred');
       }
     }
-
     handleCallback();
   }, [searchParams]);
 
@@ -86,18 +80,16 @@ function CallbackContent() {
     setTimeout(() => setCopied(null), 2000);
   };
 
+  const bgGradient =
+    status === 'success' ? 'var(--gradient-success)' :
+    status === 'error'   ? 'var(--gradient-error)'   :
+                           'var(--gradient-reddit)';
+
   return (
     <main style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '40px 24px',
-      background: status === 'success'
-        ? 'radial-gradient(ellipse 80% 60% at 50% -20%, #0d1a0d 0%, #080808 60%)'
-        : status === 'error'
-          ? 'radial-gradient(ellipse 80% 60% at 50% -20%, #1a0808 0%, #080808 60%)'
-          : 'radial-gradient(ellipse 80% 60% at 50% -20%, #1a0d00 0%, #080808 60%)',
+      minHeight: '100vh', display: 'flex', alignItems: 'center',
+      justifyContent: 'center', padding: '40px 24px',
+      background: bgGradient,
     }}>
       <div style={{ width: '100%', maxWidth: 440, textAlign: 'center' }}>
 
@@ -105,20 +97,18 @@ function CallbackContent() {
           <div style={{ animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards', opacity: 0 }}>
             <div style={{
               width: 48, height: 48,
-              border: '1px solid #2a2a2a',
-              borderTop: '1px solid #c9a84c',
+              border: `1px solid ${t.borderLight}`,
+              borderTop: `1px solid ${t.gold}`,
               borderRadius: '50%',
               animation: 'spin 1s linear infinite',
               margin: '0 auto 32px',
             }} />
-            <h2 style={{
-              fontFamily: 'Cormorant Garamond, serif',
-              fontSize: 32, fontWeight: 300, color: t.text, marginBottom: 8,
-            }}>Authenticating</h2>
-            <p style={{
-              fontFamily: 'DM Mono, monospace',
-              fontSize: 11, color: t.textDim, letterSpacing: '0.15em',
-            }}>Exchanging authorization code...</p>
+            <h2 style={{ fontFamily: t.serif, fontSize: 32, fontWeight: 300, color: t.text, marginBottom: 8 }}>
+              Authenticating
+            </h2>
+            <p style={{ fontFamily: t.mono, fontSize: 11, color: t.textDim, letterSpacing: '0.15em' }}>
+              Exchanging authorization code...
+            </p>
           </div>
         )}
 
@@ -130,33 +120,27 @@ function CallbackContent() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 32px', color: t.success, fontSize: 20,
             }}>✓</div>
-
-            <h2 style={{
-              fontFamily: 'Cormorant Garamond, serif',
-              fontSize: 36, fontWeight: 300, color: t.text, marginBottom: 8,
-            }}>Connected</h2>
-            <p style={{
-              fontFamily: 'DM Mono, monospace',
-              fontSize: 11, color: t.textDim, letterSpacing: '0.15em', marginBottom: 32,
-            }}>Reddit authenticated successfully</p>
+            <h2 style={{ fontFamily: t.serif, fontSize: 36, fontWeight: 300, color: t.text, marginBottom: 8 }}>
+              Connected
+            </h2>
+            <p style={{ fontFamily: t.mono, fontSize: 11, color: t.textDim, letterSpacing: '0.15em', marginBottom: 32 }}>
+              Reddit authenticated successfully
+            </p>
 
             {[
-              { label: 'Access Token', value: accessToken, type: 'access' as const },
+              { label: 'Access Token',  value: accessToken,  type: 'access'  as const },
               ...(refreshToken ? [{ label: 'Refresh Token', value: refreshToken, type: 'refresh' as const }] : []),
             ].map(({ label, value, type }) => (
               <div key={type} style={{ marginBottom: 12 }}>
                 <div style={{
-                  background: t.surface, border: '1px solid #1f1f1f',
+                  background: t.surface, border: `1px solid ${t.border}`,
                   borderRadius: 2, padding: 20, marginBottom: 8, textAlign: 'left',
                 }}>
                   <div style={{
-                    fontFamily: 'DM Mono, monospace', fontSize: 10, color: t.textDim,
+                    fontFamily: t.mono, fontSize: 10, color: t.textDim,
                     letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10,
                   }}>{label}</div>
-                  <div style={{
-                    fontFamily: 'DM Mono, monospace', fontSize: 11,
-                    color: t.gold, wordBreak: 'break-all', lineHeight: 1.6,
-                  }}>
+                  <div style={{ fontFamily: t.mono, fontSize: 11, color: t.gold, wordBreak: 'break-all', lineHeight: 1.6 }}>
                     {value.substring(0, 40)}...
                   </div>
                 </div>
@@ -164,9 +148,8 @@ function CallbackContent() {
                   width: '100%', padding: '12px 24px',
                   background: copied === type ? t.successBg : t.surface,
                   border: `1px solid ${copied === type ? t.successBorder : t.border}`,
-                  borderRadius: 2,
-                  color: copied === type ? t.success : t.text,
-                  fontFamily: 'DM Mono, monospace', fontSize: 11,
+                  borderRadius: 2, color: copied === type ? t.success : t.text,
+                  fontFamily: t.mono, fontSize: 11,
                   letterSpacing: '0.2em', textTransform: 'uppercase' as const,
                   cursor: 'pointer', transition: 'all 0.2s',
                 }}>
@@ -178,12 +161,10 @@ function CallbackContent() {
             <button
               onClick={() => router.push('/')}
               style={{
-                marginTop: 20,
-                fontFamily: 'DM Mono, monospace', fontSize: 10,
+                marginTop: 20, fontFamily: t.mono, fontSize: 10,
                 color: t.textDim, letterSpacing: '0.2em',
                 textTransform: 'uppercase' as const,
-                background: 'none', border: 'none',
-                cursor: 'pointer', padding: 0, transition: 'color 0.2s',
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               }}
               onMouseEnter={e => (e.currentTarget.style.color = t.gold)}
               onMouseLeave={e => (e.currentTarget.style.color = t.textDim)}
@@ -201,22 +182,17 @@ function CallbackContent() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 32px', color: t.error, fontSize: 20,
             }}>✕</div>
-
-            <h2 style={{
-              fontFamily: 'Cormorant Garamond, serif',
-              fontSize: 36, fontWeight: 300, color: t.text, marginBottom: 8,
-            }}>Failed</h2>
-            <p style={{
-              fontFamily: 'DM Mono, monospace', fontSize: 11, color: t.error,
-              letterSpacing: '0.1em', marginBottom: 32, lineHeight: 1.6,
-            }}>{errorMsg}</p>
-
+            <h2 style={{ fontFamily: t.serif, fontSize: 36, fontWeight: 300, color: t.text, marginBottom: 8 }}>
+              Failed
+            </h2>
+            <p style={{ fontFamily: t.mono, fontSize: 11, color: t.error, letterSpacing: '0.1em', marginBottom: 32, lineHeight: 1.6 }}>
+              {errorMsg}
+            </p>
             <button onClick={() => router.push('/auth/reddit')} style={{
               padding: '14px 32px', background: t.surface,
-              border: '1px solid #1f1f1f', borderRadius: 2, color: t.text,
-              fontFamily: 'DM Mono, monospace', fontSize: 11,
-              letterSpacing: '0.2em', textTransform: 'uppercase' as const,
-              cursor: 'pointer',
+              border: `1px solid ${t.border}`, borderRadius: 2, color: t.text,
+              fontFamily: t.mono, fontSize: 11,
+              letterSpacing: '0.2em', textTransform: 'uppercase' as const, cursor: 'pointer',
             }}>
               Try Again
             </button>
