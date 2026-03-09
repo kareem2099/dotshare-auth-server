@@ -6,24 +6,20 @@ import { t } from '@/lib/tokens';
 
 export default function LinkedInAuth() {
   const router = useRouter();
-  const [clientId, setClientId] = useState('');
-  const [clientSecret, setClientSecret] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const p = t.platform('linkedin');
 
-  const handleAuth = async () => {
-    if (!clientId || !clientSecret) {
-      setError('Please enter both Client ID and Client Secret');
+  const handleAuth = () => {
+    const clientId = process.env.NEXT_PUBLIC_LINKEDIN_CLIENT_ID;
+
+    if (!clientId) {
+      setError('Server configuration error: Missing Client ID in .env');
       return;
     }
 
     setLoading(true);
     setError('');
-
-    // Store in sessionStorage for use after redirect
-    sessionStorage.setItem('li_client_id', clientId);
-    sessionStorage.setItem('li_client_secret', clientSecret);
 
     const scopes = ['openid', 'profile', 'email', 'w_member_social'].join(' ');
     const redirectUri = `${window.location.origin}/auth/linkedin/callback`;
@@ -120,10 +116,10 @@ export default function LinkedInAuth() {
           </h1>
 
           <p style={{
-            fontFamily: t.mono, fontSize: 11, color: t.textDim,
-            letterSpacing: '0.1em', lineHeight: 1.8,
+            fontFamily: t.mono, fontSize: 11,
+            color: t.textDim, letterSpacing: '0.1em', lineHeight: 1.8,
           }}>
-            Enter your app credentials from the<br />LinkedIn Developer Portal
+            Securely connect your LinkedIn account<br />with one click.
           </p>
         </div>
 
@@ -133,60 +129,6 @@ export default function LinkedInAuth() {
           animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s forwards',
           opacity: 0,
         }}>
-          {/* Client ID */}
-          <div>
-            <label style={{
-              display: 'block', fontFamily: t.mono, fontSize: 10,
-              letterSpacing: '0.2em', textTransform: 'uppercase',
-              color: t.textDim, marginBottom: 8,
-            }}>Client ID</label>
-            <input
-              type="text"
-              value={clientId}
-              onChange={e => setClientId(e.target.value)}
-              placeholder="From LinkedIn Developer Portal"
-              style={{
-                width: '100%', padding: '14px 16px',
-                background: t.surface, border: `1px solid ${t.border}`,
-                borderRadius: 2, color: t.text,
-                fontFamily: t.mono, fontSize: 13,
-                outline: 'none', transition: 'border-color 0.2s',
-              }}
-              onFocus={e => (e.target.style.borderColor = p.focus)}
-              onBlur={e => (e.target.style.borderColor = t.border)}
-            />
-          </div>
-
-          {/* Client Secret */}
-          <div>
-            <label style={{
-              display: 'block', fontFamily: t.mono, fontSize: 10,
-              letterSpacing: '0.2em', textTransform: 'uppercase',
-              color: t.textDim, marginBottom: 8,
-            }}>Client Secret</label>
-            <input
-              type="password"
-              value={clientSecret}
-              onChange={e => setClientSecret(e.target.value)}
-              placeholder="••••••••••••••••"
-              style={{
-                width: '100%', padding: '14px 16px',
-                background: t.surface, border: `1px solid ${t.border}`,
-                borderRadius: 2, color: t.text,
-                fontFamily: t.mono, fontSize: 13,
-                outline: 'none', transition: 'border-color 0.2s',
-              }}
-              onFocus={e => (e.target.style.borderColor = p.focus)}
-              onBlur={e => (e.target.style.borderColor = t.border)}
-            />
-            <p style={{
-              fontFamily: t.mono, fontSize: 10, color: t.textDimmer,
-              letterSpacing: '0.1em', marginTop: 8,
-            }}>
-              Processed locally · Never stored on any server
-            </p>
-          </div>
-
           {/* Error */}
           {error && (
             <div style={{

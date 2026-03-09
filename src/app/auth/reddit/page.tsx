@@ -12,25 +12,27 @@ function generateState(): string {
 
 export default function RedditAuth() {
   const router = useRouter();
-  const [clientId, setClientId] = useState('');
-  const [clientSecret, setClientSecret] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const p = t.platform('reddit');
 
   const handleAuth = () => {
-    if (!clientId.trim() || !clientSecret.trim()) {
-      setError('Please enter both Client ID and Client Secret');
+    const clientId = process.env.NEXT_PUBLIC_REDDIT_CLIENT_ID;
+
+    if (!clientId) {
+      setError('Server configuration error: Missing Client ID in .env');
       return;
     }
+
     setLoading(true);
     setError('');
+
     const state = generateState();
-    sessionStorage.setItem('reddit_client_id', clientId.trim());
-    sessionStorage.setItem('reddit_client_secret', clientSecret.trim());
+    // Only store state for CSRF validation — no secrets
     sessionStorage.setItem('reddit_state', state);
+
     const authUrl = new URL('https://www.reddit.com/api/v1/authorize');
-    authUrl.searchParams.set('client_id', clientId.trim());
+    authUrl.searchParams.set('client_id', clientId);
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('state', state);
     authUrl.searchParams.set('redirect_uri', `${window.location.origin}/auth/reddit/callback`);
@@ -112,7 +114,7 @@ export default function RedditAuth() {
             fontFamily: t.mono, fontSize: 11,
             color: t.textDim, letterSpacing: '0.1em', lineHeight: 1.8,
           }}>
-            Enter your app credentials from the<br />Reddit Developer Portal
+            Securely connect your Reddit account<br />with one click.
           </p>
         </div>
 
@@ -121,42 +123,6 @@ export default function RedditAuth() {
           animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s forwards',
           opacity: 0,
         }}>
-          {[
-            { label: 'Client ID',     value: clientId,     setter: setClientId,     type: 'text',     placeholder: 'From Reddit App Preferences' },
-            { label: 'Client Secret', value: clientSecret, setter: setClientSecret, type: 'password', placeholder: '••••••••••••••••' },
-          ].map(({ label, value, setter, type, placeholder }) => (
-            <div key={label}>
-              <label style={{
-                display: 'block', fontFamily: t.mono, fontSize: 10,
-                letterSpacing: '0.2em', textTransform: 'uppercase',
-                color: t.textDim, marginBottom: 8,
-              }}>{label}</label>
-              <input
-                type={type}
-                value={value}
-                onChange={e => setter(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAuth()}
-                placeholder={placeholder}
-                style={{
-                  width: '100%', padding: '14px 16px',
-                  background: t.surface, border: `1px solid ${t.border}`,
-                  borderRadius: 2, color: t.text,
-                  fontFamily: t.mono, fontSize: 13,
-                  outline: 'none', transition: 'border-color 0.2s',
-                }}
-                onFocus={e => (e.target.style.borderColor = p.focus)}
-                onBlur={e => (e.target.style.borderColor = t.border)}
-              />
-            </div>
-          ))}
-
-          <p style={{
-            fontFamily: t.mono, fontSize: 10,
-            color: t.textDimmer, letterSpacing: '0.1em',
-          }}>
-            Processed locally · Never stored on any server
-          </p>
-
           {error && (
             <div style={{
               padding: '12px 16px', background: t.errorBg,
@@ -205,10 +171,9 @@ export default function RedditAuth() {
           opacity: 0,
         }}>
           <div style={{ flex: 1, height: '1px', background: t.borderMedium }} />
-          <span style={{
-            fontFamily: t.mono, fontSize: 10,
-            color: t.textDimmest, letterSpacing: '0.2em',
-          }}>Required Scopes</span>
+          <span style={{ fontFamily: t.mono, fontSize: 10, color: t.textDimmest, letterSpacing: '0.2em' }}>
+            Required Scopes
+          </span>
           <div style={{ flex: 1, height: '1px', background: t.borderMedium }} />
         </div>
 

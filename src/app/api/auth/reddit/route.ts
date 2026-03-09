@@ -2,10 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { code, clientId, clientSecret, redirectUri } = await req.json();
+    const { code, redirectUri } = await req.json();
 
-    if (!code || !clientId || !clientSecret || !redirectUri) {
+    // Read credentials from server env — never exposed to client
+    const clientId = process.env.REDDIT_CLIENT_ID;
+    const clientSecret = process.env.REDDIT_CLIENT_SECRET;
+
+    if (!code || !redirectUri) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    if (!clientId || !clientSecret) {
+      return NextResponse.json({ error: 'Server misconfiguration: missing Reddit credentials' }, { status: 500 });
     }
 
     const params = new URLSearchParams({

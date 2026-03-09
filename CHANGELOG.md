@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] — 2026-03-09
+
+### Added
+- **Seamless OAuth flow** — users no longer enter credentials manually; all app secrets stored in server `.env`
+- **Auto redirect to VS Code** — after successful auth, browser automatically redirects via `vscode://freerave.dotshare/auth?platform=...&access_token=...`
+- `NEXT_PUBLIC_*` env variables for client-side platform config (Client ID / App ID only)
+- Server-side env variables for secrets (`LINKEDIN_CLIENT_SECRET`, `FACEBOOK_APP_SECRET`, `REDDIT_CLIENT_SECRET`)
+
+### Changed
+- All auth pages (`linkedin`, `x`, `facebook`, `reddit`) — removed credential input forms; now read Client ID from `NEXT_PUBLIC_*` env
+- All callback pages — replaced "Copy Token" UI with "Redirecting back to VS Code..." message + auto deep link redirect after 1.5s
+- All API routes (`/api/auth/*`) — credentials now read from server env instead of request body
+- `sessionStorage` now used only for non-secret PKCE values (`x_code_verifier`) and CSRF state — no secrets ever stored client-side
+- README updated to reflect new one-click flow and env variable requirements
+
+### Fixed
+- Removed `console.log` of LinkedIn token response from API route
+- Facebook and Reddit callback pages were still using old sessionStorage pattern
+
+---
+
 ## [1.1.0] — 2026-03-08
 
 ### Added
@@ -76,8 +97,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned
 - Bluesky support (identifier + app password flow)
 - Token refresh endpoint for platforms that support it
-- Copy-all button on success page (copies both access + refresh tokens)
-- Toast notifications instead of inline copy feedback
 - Internationalization (Arabic / English)
 - Rate limiting on API routes
 - Deployment guide for self-hosting on Railway

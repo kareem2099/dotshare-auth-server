@@ -8,10 +8,7 @@ function CallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [accessToken, setAccessToken] = useState('');
-  const [refreshToken, setRefreshToken] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [copied, setCopied] = useState<'access' | 'refresh' | null>(null);
 
   useEffect(() => {
     async function handleCallback() {
@@ -30,37 +27,51 @@ function CallbackContent() {
         return;
       }
 
+      // CSRF validation
       const storedState = sessionStorage.getItem('x_state');
-      const codeVerifier = sessionStorage.getItem('x_code_verifier');
-      const clientId = sessionStorage.getItem('x_client_id');
-
       if (state !== storedState) {
         setStatus('error');
         setErrorMsg('State mismatch — possible CSRF attack. Please try again.');
         return;
       }
-      if (!codeVerifier || !clientId) {
+
+      // codeVerifier is not a secret — it's part of PKCE flow
+      const codeVerifier = sessionStorage.getItem('x_code_verifier');
+      if (!codeVerifier) {
         setStatus('error');
         setErrorMsg('Session expired. Please start over.');
         return;
       }
+
+      sessionStorage.removeItem('x_state');
+      sessionStorage.removeItem('x_code_verifier');
 
       try {
         const res = await fetch('/api/auth/x', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            code, codeVerifier, clientId,
+            code,
+            codeVerifier,
             redirectUri: `${window.location.origin}/auth/x/callback`,
           }),
         });
+
         const data = await res.json();
+
         if (data.access_token) {
-          setAccessToken(data.access_token);
-          setRefreshToken(data.refresh_token || '');
           setStatus('success');
-          sessionStorage.removeItem('x_code_verifier');
-          sessionStorage.removeItem('x_state');
+
+          // Auto redirect to VS Code with both tokens
+          setTimeout(() => {
+            const params = new URLSearchParams({
+              platform: 'x',
+              access_token: data.access_token,
+              ...(data.refresh_token && { refresh_token: data.refresh_token }),
+            });
+            window.location.href = `vscode://freerave.dotshare/auth?${params.toString()}`;
+          }, 1500);
+
         } else {
           setStatus('error');
           setErrorMsg(data.error || 'Failed to get access token');
@@ -72,12 +83,6 @@ function CallbackContent() {
     }
     handleCallback();
   }, [searchParams]);
-
-  const copy = async (type: 'access' | 'refresh') => {
-    await navigator.clipboard.writeText(type === 'access' ? accessToken : refreshToken);
-    setCopied(type);
-    setTimeout(() => setCopied(null), 2000);
-  };
 
   const bgGradient =
     status === 'success' ? 'var(--gradient-success)' :
@@ -92,6 +97,7 @@ function CallbackContent() {
     }}>
       <div style={{ width: '100%', maxWidth: 440, textAlign: 'center' }}>
 
+        {/* Loading */}
         {status === 'loading' && (
           <div style={{ animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards', opacity: 0 }}>
             <div style={{
@@ -111,6 +117,7 @@ function CallbackContent() {
           </div>
         )}
 
+        {/* Success */}
         {status === 'success' && (
           <div style={{ animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards', opacity: 0 }}>
             <div style={{
@@ -125,54 +132,17 @@ function CallbackContent() {
             <p style={{ fontFamily: t.mono, fontSize: 11, color: t.textDim, letterSpacing: '0.15em', marginBottom: 32 }}>
               X authenticated successfully
             </p>
-
-            {[
-              { label: 'Access Token',  value: accessToken,  type: 'access'  as const },
-              ...(refreshToken ? [{ label: 'Refresh Token', value: refreshToken, type: 'refresh' as const }] : []),
-            ].map(({ label, value, type }) => (
-              <div key={type} style={{ marginBottom: 12 }}>
-                <div style={{
-                  background: t.surface, border: `1px solid ${t.border}`,
-                  borderRadius: 2, padding: 20, marginBottom: 8, textAlign: 'left',
-                }}>
-                  <div style={{
-                    fontFamily: t.mono, fontSize: 10, color: t.textDim,
-                    letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10,
-                  }}>{label}</div>
-                  <div style={{ fontFamily: t.mono, fontSize: 11, color: t.gold, wordBreak: 'break-all', lineHeight: 1.6 }}>
-                    {value.substring(0, 40)}...
-                  </div>
-                </div>
-                <button onClick={() => copy(type)} style={{
-                  width: '100%', padding: '12px 24px',
-                  background: copied === type ? t.successBg : t.surface,
-                  border: `1px solid ${copied === type ? t.successBorder : t.border}`,
-                  borderRadius: 2, color: copied === type ? t.success : t.text,
-                  fontFamily: t.mono, fontSize: 11,
-                  letterSpacing: '0.2em', textTransform: 'uppercase' as const,
-                  cursor: 'pointer', transition: 'all 0.2s',
-                }}>
-                  {copied === type ? '✓ Copied' : `Copy ${label}`}
-                </button>
-              </div>
-            ))}
-
-            <button
-              onClick={() => router.push('/')}
-              style={{
-                marginTop: 20, fontFamily: t.mono, fontSize: 10,
-                color: t.textDim, letterSpacing: '0.2em',
-                textTransform: 'uppercase' as const,
-                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-              }}
-              onMouseEnter={e => (e.currentTarget.style.color = t.gold)}
-              onMouseLeave={e => (e.currentTarget.style.color = t.textDim)}
-            >
-              ← Back to platforms
-            </button>
+            <div style={{
+              padding: '16px', background: t.successBg, border: `1px solid ${t.successBorder}`,
+              borderRadius: 2, color: t.success, fontFamily: t.mono, fontSize: 11,
+              letterSpacing: '0.1em', marginBottom: 32,
+            }}>
+              Redirecting back to VS Code...
+            </div>
           </div>
         )}
 
+        {/* Error */}
         {status === 'error' && (
           <div style={{ animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards', opacity: 0 }}>
             <div style={{
@@ -191,7 +161,7 @@ function CallbackContent() {
               padding: '14px 32px', background: t.surface,
               border: `1px solid ${t.border}`, borderRadius: 2, color: t.text,
               fontFamily: t.mono, fontSize: 11,
-              letterSpacing: '0.2em', textTransform: 'uppercase' as const, cursor: 'pointer',
+              letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer',
             }}>
               Try Again
             </button>

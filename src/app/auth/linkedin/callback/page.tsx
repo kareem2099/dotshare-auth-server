@@ -8,9 +8,7 @@ function CallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [token, setToken] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     async function handleCallback() {
@@ -28,29 +26,27 @@ function CallbackContent() {
         return;
       }
 
-      const clientId = sessionStorage.getItem('li_client_id');
-      const clientSecret = sessionStorage.getItem('li_client_secret');
-
-      if (!clientId || !clientSecret) {
-        setStatus('error');
-        setErrorMsg('Session expired. Please start over.');
-        return;
-      }
-
       try {
         const res = await fetch('/api/auth/linkedin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            code, clientId, clientSecret,
+            code,
             redirectUri: `${window.location.origin}/auth/linkedin/callback`,
           }),
         });
+
         const data = await res.json();
+
         if (data.access_token) {
-          setToken(data.access_token);
           setStatus('success');
-          sessionStorage.removeItem('li_client_secret');
+
+          // Auto redirect to VS Code with token
+          setTimeout(() => {
+            const deepLink = `vscode://freerave.dotshare/auth?platform=linkedin&access_token=${data.access_token}`;
+            window.location.href = deepLink;
+          }, 1500);
+
         } else {
           setStatus('error');
           setErrorMsg(data.error || 'Failed to get access token');
@@ -62,12 +58,6 @@ function CallbackContent() {
     }
     handleCallback();
   }, [searchParams]);
-
-  const copyToken = async () => {
-    await navigator.clipboard.writeText(token);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const bgGradient =
     status === 'success' ? 'var(--gradient-success)' :
@@ -113,54 +103,19 @@ function CallbackContent() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 32px', color: t.success, fontSize: 20,
             }}>✓</div>
-
-            <h2 style={{
-              fontFamily: t.serif, fontSize: 36,
-              fontWeight: 300, color: t.text, marginBottom: 8,
-            }}>Connected</h2>
-            <p style={{
-              fontFamily: t.mono, fontSize: 11, color: t.textDim,
-              letterSpacing: '0.15em', marginBottom: 32,
-            }}>LinkedIn authenticated successfully</p>
-
+            <h2 style={{ fontFamily: t.serif, fontSize: 36, fontWeight: 300, color: t.text, marginBottom: 8 }}>
+              Connected
+            </h2>
+            <p style={{ fontFamily: t.mono, fontSize: 11, color: t.textDim, letterSpacing: '0.15em', marginBottom: 32 }}>
+              LinkedIn authenticated successfully
+            </p>
             <div style={{
-              background: t.surface, border: `1px solid ${t.border}`,
-              borderRadius: 2, padding: 20, marginBottom: 12, textAlign: 'left',
+              padding: '16px', background: t.successBg, border: `1px solid ${t.successBorder}`,
+              borderRadius: 2, color: t.success, fontFamily: t.mono, fontSize: 11,
+              letterSpacing: '0.1em', marginBottom: 32,
             }}>
-              <div style={{
-                fontFamily: t.mono, fontSize: 10, color: t.textDim,
-                letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10,
-              }}>Access Token</div>
-              <div style={{
-                fontFamily: t.mono, fontSize: 11,
-                color: t.gold, wordBreak: 'break-all', lineHeight: 1.6,
-              }}>
-                {token.substring(0, 40)}...
-              </div>
+              Redirecting back to VS Code...
             </div>
-
-            <button onClick={copyToken} style={{
-              width: '100%', padding: '14px 24px',
-              background: copied ? t.successBg : t.surface,
-              border: `1px solid ${copied ? t.successBorder : t.border}`,
-              borderRadius: 2, color: copied ? t.success : t.text,
-              fontFamily: t.mono, fontSize: 11,
-              letterSpacing: '0.2em', textTransform: 'uppercase',
-              cursor: 'pointer', transition: 'all 0.2s', marginBottom: 32,
-            }}>
-              {copied ? '✓ Copied to clipboard' : 'Copy Access Token'}
-            </button>
-
-            <button onClick={() => router.push('/')} style={{
-              fontFamily: t.mono, fontSize: 10, color: t.textDim,
-              letterSpacing: '0.2em', textTransform: 'uppercase',
-              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-            }}
-            onMouseEnter={e => (e.currentTarget.style.color = t.gold)}
-            onMouseLeave={e => (e.currentTarget.style.color = t.textDim)}
-            >
-              ← Back to platforms
-            </button>
           </div>
         )}
 
@@ -173,21 +128,17 @@ function CallbackContent() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 32px', color: t.error, fontSize: 20,
             }}>✕</div>
-
-            <h2 style={{
-              fontFamily: t.serif, fontSize: 36,
-              fontWeight: 300, color: t.text, marginBottom: 8,
-            }}>Failed</h2>
-            <p style={{
-              fontFamily: t.mono, fontSize: 11, color: t.error,
-              letterSpacing: '0.1em', marginBottom: 32, lineHeight: 1.6,
-            }}>{errorMsg}</p>
-
+            <h2 style={{ fontFamily: t.serif, fontSize: 36, fontWeight: 300, color: t.text, marginBottom: 8 }}>
+              Failed
+            </h2>
+            <p style={{ fontFamily: t.mono, fontSize: 11, color: t.error, letterSpacing: '0.1em', marginBottom: 32, lineHeight: 1.6 }}>
+              {errorMsg}
+            </p>
             <button onClick={() => router.push('/auth/linkedin')} style={{
-              display: 'inline-block', padding: '14px 32px',
-              background: t.surface, border: `1px solid ${t.border}`,
-              borderRadius: 2, color: t.text, fontFamily: t.mono, fontSize: 11,
-              letterSpacing: '0.2em', cursor: 'pointer', textTransform: 'uppercase',
+              padding: '14px 32px', background: t.surface,
+              border: `1px solid ${t.border}`, borderRadius: 2, color: t.text,
+              fontFamily: t.mono, fontSize: 11,
+              letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer',
             }}>
               Try Again
             </button>

@@ -2,7 +2,7 @@
 
 > OAuth 2.0 Authentication Portal for the [DotShare](https://github.com/kareem2099/dotshare) VS Code Extension
 
-A clean, luxury-designed Next.js application that handles OAuth 2.0 flows for all social platforms supported by DotShare. Users authenticate once, copy their tokens, and paste them into the extension — no manual API key hunting required.
+A clean, luxury-designed Next.js application that handles OAuth 2.0 flows for all social platforms supported by DotShare. Users authenticate with one click — tokens are exchanged server-side and sent directly back to VS Code automatically.
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?style=flat-square&logo=typescript)
@@ -23,13 +23,30 @@ A clean, luxury-designed Next.js application that handles OAuth 2.0 flows for al
 
 ## Features
 
-- **Zero server-side secret storage** — credentials are passed per-request and never persisted
+- **One-click authentication** — no manual credential entry or token copying
+- **Zero client-side secrets** — all app credentials stored in server `.env`, never exposed to the browser
+- **Auto redirect to VS Code** — tokens sent directly via `vscode://` deep link after auth
 - **PKCE support** for X (Twitter) — code verifier generated client-side
 - **CSRF protection** via `state` parameter for X and Reddit
 - **Dark / Light mode** with system preference detection and localStorage persistence
 - **Luxury UI** — Cormorant Garamond + DM Mono, gold accents, grain overlay, staggered animations
 - **CSS token system** — all colors defined as CSS custom properties via `lib/tokens.ts`
-- Deployable to **Vercel** or **Railway** in one command
+- Deployable to **Vercel** in one command
+
+---
+
+## How It Works
+
+```
+VS Code Extension
+  → opens browser to https://dotshare-auth-server.vercel.app/auth/{platform}
+  → user clicks "Authenticate" (no credentials to enter)
+  → redirected to platform OAuth page
+  → platform redirects back to /auth/{platform}/callback
+  → server exchanges code for token using .env credentials
+  → browser redirects to vscode://freerave.dotshare/auth?platform=...&access_token=...
+  → VS Code extension receives token automatically
+```
 
 ---
 
@@ -60,6 +77,25 @@ Edit `.env.local`:
 
 ```env
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
+
+# LinkedIn
+NEXT_PUBLIC_LINKEDIN_CLIENT_ID=your_linkedin_client_id
+LINKEDIN_CLIENT_ID=your_linkedin_client_id
+LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
+
+# X (Twitter)
+NEXT_PUBLIC_X_CLIENT_ID=your_x_client_id
+X_CLIENT_ID=your_x_client_id
+
+# Facebook
+NEXT_PUBLIC_FACEBOOK_APP_ID=your_facebook_app_id
+FACEBOOK_APP_ID=your_facebook_app_id
+FACEBOOK_APP_SECRET=your_facebook_app_secret
+
+# Reddit
+NEXT_PUBLIC_REDDIT_CLIENT_ID=your_reddit_client_id
+REDDIT_CLIENT_ID=your_reddit_client_id
+REDDIT_CLIENT_SECRET=your_reddit_client_secret
 ```
 
 ### Development
@@ -81,7 +117,7 @@ Open [http://localhost:3000](http://localhost:3000)
    - **Share on LinkedIn**
    - **Sign In with LinkedIn using OpenID Connect**
 3. Add Redirect URL: `https://your-domain.com/auth/linkedin/callback`
-4. Copy **Client ID** and **Client Secret**
+4. Copy **Client ID** and **Client Secret** → add to `.env`
 
 ### X (Twitter)
 
@@ -90,7 +126,7 @@ Open [http://localhost:3000](http://localhost:3000)
 3. Enable **OAuth 2.0** with **PKCE**
 4. Set app type to **Public client**
 5. Add Callback URL: `https://your-domain.com/auth/x/callback`
-6. Copy **Client ID** (no secret needed for PKCE)
+6. Copy **Client ID** (no secret needed for PKCE) → add to `.env`
 
 ### Facebook
 
@@ -98,14 +134,14 @@ Open [http://localhost:3000](http://localhost:3000)
 2. Create an app → **Business** type
 3. Add **Facebook Login** product
 4. Add Redirect URI: `https://your-domain.com/auth/facebook/callback`
-5. Copy **App ID** and **App Secret**
+5. Copy **App ID** and **App Secret** → add to `.env`
 
 ### Reddit
 
 1. Go to [Reddit App Preferences](https://www.reddit.com/prefs/apps)
 2. Create app → type: **web app**
 3. Set redirect URI: `https://your-domain.com/auth/reddit/callback`
-4. Copy **Client ID** (under app name) and **Client Secret**
+4. Copy **Client ID** and **Client Secret** → add to `.env`
 
 ---
 
@@ -118,19 +154,7 @@ npm i -g vercel
 vercel
 ```
 
-Set environment variable in Vercel dashboard:
-```
-NEXT_PUBLIC_BASE_URL=https://your-project.vercel.app
-```
-
-### Railway
-
-```bash
-railway init
-railway up
-```
-
-Set `NEXT_PUBLIC_BASE_URL` in Railway environment variables.
+Add all environment variables in the Vercel dashboard under **Settings → Environment Variables**.
 
 ---
 
@@ -143,23 +167,23 @@ src/
     layout.tsx                  # Root layout with ThemeToggle
     auth/
       linkedin/
-        page.tsx                # LinkedIn auth form
-        callback/page.tsx       # LinkedIn callback handler
+        page.tsx                # LinkedIn auth (one-click, reads from env)
+        callback/page.tsx       # LinkedIn callback → auto redirect to VS Code
       x/
-        page.tsx                # X auth form (PKCE)
-        callback/page.tsx       # X callback handler
+        page.tsx                # X auth (PKCE, one-click)
+        callback/page.tsx       # X callback → auto redirect to VS Code
       facebook/
-        page.tsx                # Facebook auth form
-        callback/page.tsx       # Facebook callback handler
+        page.tsx                # Facebook auth (one-click, reads from env)
+        callback/page.tsx       # Facebook callback → auto redirect to VS Code
       reddit/
-        page.tsx                # Reddit auth form
-        callback/page.tsx       # Reddit callback handler
+        page.tsx                # Reddit auth (one-click, reads from env)
+        callback/page.tsx       # Reddit callback → auto redirect to VS Code
     api/
       auth/
-        linkedin/route.ts       # LinkedIn token exchange
-        x/route.ts              # X token exchange
-        facebook/route.ts       # Facebook token exchange
-        reddit/route.ts         # Reddit token exchange
+        linkedin/route.ts       # LinkedIn token exchange (reads secret from env)
+        x/route.ts              # X token exchange (reads client ID from env)
+        facebook/route.ts       # Facebook token exchange (reads secret from env)
+        reddit/route.ts         # Reddit token exchange (reads secret from env)
     components/
       PlatformCard.tsx          # Animated platform link card
       ThemeToggle.tsx           # Dark/light mode toggle
@@ -173,11 +197,12 @@ src/
 
 ## Security
 
-- **No secrets stored** — all credentials are sent per-request from the client and used immediately
+- **Zero client-side secrets** — all app credentials live in server `.env` only
 - **PKCE** prevents authorization code interception for X
 - **State parameter** prevents CSRF for X and Reddit
-- **sessionStorage** is cleared after token exchange (secrets removed immediately)
-- All token exchanges happen **server-side** via Next.js API routes — credentials never hit third-party services from the browser
+- **sessionStorage** used only for non-secret PKCE and state values, cleared after use
+- All token exchanges happen **server-side** via Next.js API routes
+- Tokens are passed directly to VS Code via deep link — never logged or stored
 
 ---
 

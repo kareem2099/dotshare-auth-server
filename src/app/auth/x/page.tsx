@@ -25,27 +25,32 @@ function generateState(): string {
 
 export default function XAuth() {
   const router = useRouter();
-  const [clientId, setClientId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const p = t.platform('x');
 
   const handleAuth = async () => {
-    if (!clientId.trim()) {
-      setError('Please enter your Client ID');
+    const clientId = process.env.NEXT_PUBLIC_X_CLIENT_ID;
+
+    if (!clientId) {
+      setError('Server configuration error: Missing Client ID in .env');
       return;
     }
+
     setLoading(true);
     setError('');
+
     const codeVerifier = generateCodeVerifier();
     const codeChallenge = await generateCodeChallenge(codeVerifier);
     const state = generateState();
+
+    // codeVerifier and state are not secrets — safe in sessionStorage
     sessionStorage.setItem('x_code_verifier', codeVerifier);
     sessionStorage.setItem('x_state', state);
-    sessionStorage.setItem('x_client_id', clientId.trim());
+
     const authUrl = new URL('https://twitter.com/i/oauth2/authorize');
     authUrl.searchParams.set('response_type', 'code');
-    authUrl.searchParams.set('client_id', clientId.trim());
+    authUrl.searchParams.set('client_id', clientId);
     authUrl.searchParams.set('redirect_uri', `${window.location.origin}/auth/x/callback`);
     authUrl.searchParams.set('scope', 'tweet.read tweet.write users.read offline.access');
     authUrl.searchParams.set('state', state);
@@ -124,7 +129,7 @@ export default function XAuth() {
             fontFamily: t.mono, fontSize: 11,
             color: t.textDim, letterSpacing: '0.1em', lineHeight: 1.8,
           }}>
-            Enter your Client ID from the<br />X Developer Portal
+            Securely connect your X account<br />with one click.
           </p>
         </div>
 
@@ -133,36 +138,6 @@ export default function XAuth() {
           animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s forwards',
           opacity: 0,
         }}>
-          <div>
-            <label style={{
-              display: 'block', fontFamily: t.mono, fontSize: 10,
-              letterSpacing: '0.2em', textTransform: 'uppercase',
-              color: t.textDim, marginBottom: 8,
-            }}>Client ID</label>
-            <input
-              type="text"
-              value={clientId}
-              onChange={e => setClientId(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleAuth()}
-              placeholder="From X Developer Portal"
-              style={{
-                width: '100%', padding: '14px 16px',
-                background: t.surface, border: `1px solid ${t.border}`,
-                borderRadius: 2, color: t.text,
-                fontFamily: t.mono, fontSize: 13,
-                outline: 'none', transition: 'border-color 0.2s',
-              }}
-              onFocus={e => (e.target.style.borderColor = p.focus)}
-              onBlur={e => (e.target.style.borderColor = t.border)}
-            />
-            <p style={{
-              fontFamily: t.mono, fontSize: 10,
-              color: t.textDimmer, letterSpacing: '0.1em', marginTop: 8,
-            }}>
-              No Client Secret needed — PKCE handles security
-            </p>
-          </div>
-
           {error && (
             <div style={{
               padding: '12px 16px', background: t.errorBg,
@@ -211,10 +186,9 @@ export default function XAuth() {
           opacity: 0,
         }}>
           <div style={{ flex: 1, height: '1px', background: t.borderMedium }} />
-          <span style={{
-            fontFamily: t.mono, fontSize: 10,
-            color: t.textDimmest, letterSpacing: '0.2em',
-          }}>Required Scopes</span>
+          <span style={{ fontFamily: t.mono, fontSize: 10, color: t.textDimmest, letterSpacing: '0.2em' }}>
+            Required Scopes
+          </span>
           <div style={{ flex: 1, height: '1px', background: t.borderMedium }} />
         </div>
 

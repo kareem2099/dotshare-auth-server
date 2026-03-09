@@ -6,23 +6,25 @@ import { t } from '@/lib/tokens';
 
 export default function FacebookAuth() {
   const router = useRouter();
-  const [appId, setAppId] = useState('');
-  const [appSecret, setAppSecret] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const p = t.platform('facebook');
 
   const handleAuth = () => {
-    if (!appId.trim() || !appSecret.trim()) {
-      setError('Please enter both App ID and App Secret');
+    // retrieve the Facebook App ID from environment variables
+    const appId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID;
+
+    if (!appId) {
+      setError('Server configuration error: Missing App ID in .env');
       return;
     }
+
     setLoading(true);
     setError('');
-    sessionStorage.setItem('fb_app_id', appId.trim());
-    sessionStorage.setItem('fb_app_secret', appSecret.trim());
+    
+    // redirect the user to Facebook's OAuth 2.0 authorization endpoint with the necessary query parameters
     const authUrl = new URL('https://www.facebook.com/v18.0/dialog/oauth');
-    authUrl.searchParams.set('client_id', appId.trim());
+    authUrl.searchParams.set('client_id', appId);
     authUrl.searchParams.set('redirect_uri', `${window.location.origin}/auth/facebook/callback`);
     authUrl.searchParams.set('scope', 'pages_manage_posts,pages_read_engagement,publish_to_groups');
     authUrl.searchParams.set('response_type', 'code');
@@ -102,7 +104,7 @@ export default function FacebookAuth() {
             fontFamily: t.mono, fontSize: 11,
             color: t.textDim, letterSpacing: '0.1em', lineHeight: 1.8,
           }}>
-            Enter your app credentials from the<br />Meta Developer Portal
+            Securely connect your Meta accounts <br />with one click.
           </p>
         </div>
 
@@ -111,41 +113,8 @@ export default function FacebookAuth() {
           animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s forwards',
           opacity: 0,
         }}>
-          {[
-            { label: 'App ID',     value: appId,     setter: setAppId,     type: 'text',     placeholder: 'From Meta Developer Portal' },
-            { label: 'App Secret', value: appSecret, setter: setAppSecret, type: 'password', placeholder: '••••••••••••••••' },
-          ].map(({ label, value, setter, type, placeholder }) => (
-            <div key={label}>
-              <label style={{
-                display: 'block', fontFamily: t.mono, fontSize: 10,
-                letterSpacing: '0.2em', textTransform: 'uppercase',
-                color: t.textDim, marginBottom: 8,
-              }}>{label}</label>
-              <input
-                type={type}
-                value={value}
-                onChange={e => setter(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAuth()}
-                placeholder={placeholder}
-                style={{
-                  width: '100%', padding: '14px 16px',
-                  background: t.surface, border: `1px solid ${t.border}`,
-                  borderRadius: 2, color: t.text,
-                  fontFamily: t.mono, fontSize: 13,
-                  outline: 'none', transition: 'border-color 0.2s',
-                }}
-                onFocus={e => (e.target.style.borderColor = p.focus)}
-                onBlur={e => (e.target.style.borderColor = t.border)}
-              />
-            </div>
-          ))}
-
-          <p style={{
-            fontFamily: t.mono, fontSize: 10,
-            color: t.textDimmer, letterSpacing: '0.1em',
-          }}>
-            Processed locally · Never stored on any server
-          </p>
+          
+          {/* Loading State (After Redirecting to Facebook) */}
 
           {error && (
             <div style={{

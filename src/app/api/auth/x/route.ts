@@ -2,10 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { code, codeVerifier, clientId, redirectUri } = await req.json();
+    const { code, codeVerifier, redirectUri } = await req.json();
 
-    if (!code || !codeVerifier || !clientId || !redirectUri) {
+    // Read client ID from server env — never exposed to client
+    const clientId = process.env.X_CLIENT_ID;
+
+    if (!code || !codeVerifier || !redirectUri) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    if (!clientId) {
+      return NextResponse.json({ error: 'Server misconfiguration: missing X Client ID' }, { status: 500 });
     }
 
     const params = new URLSearchParams({
@@ -16,7 +23,7 @@ export async function POST(req: NextRequest) {
       code_verifier: codeVerifier,
     });
 
-    // X public client — Basic Auth with clientId only
+    // X public client — Basic Auth with clientId only (no secret)
     const basicAuth = Buffer.from(`${clientId}:`).toString('base64');
 
     const response = await fetch('https://api.twitter.com/2/oauth2/token', {

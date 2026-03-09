@@ -8,9 +8,7 @@ function CallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [token, setToken] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     async function handleCallback() {
@@ -28,29 +26,28 @@ function CallbackContent() {
         return;
       }
 
-      const appId = sessionStorage.getItem('fb_app_id');
-      const appSecret = sessionStorage.getItem('fb_app_secret');
-
-      if (!appId || !appSecret) {
-        setStatus('error');
-        setErrorMsg('Session expired. Please start over.');
-        return;
-      }
-
       try {
+        // note: this endpoint will exchange the code for an access token and return it in the response
         const res = await fetch('/api/auth/facebook', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            code, appId, appSecret,
+            code,
             redirectUri: `${window.location.origin}/auth/facebook/callback`,
           }),
         });
+        
         const data = await res.json();
+        
         if (data.access_token) {
-          setToken(data.access_token);
           setStatus('success');
-          sessionStorage.removeItem('fb_app_secret');
+          
+          // automatically redirect back to VS Code after a short delay, passing the access token via a custom URI scheme
+          setTimeout(() => {
+            const deepLink = `vscode://freerave.dotshare/auth?platform=facebook&access_token=${data.access_token}`;
+            window.location.href = deepLink;
+          }, 1500);
+
         } else {
           setStatus('error');
           setErrorMsg(data.error?.message || data.error || 'Failed to get access token');
@@ -62,12 +59,6 @@ function CallbackContent() {
     }
     handleCallback();
   }, [searchParams]);
-
-  const copyToken = async () => {
-    await navigator.clipboard.writeText(token);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const bgGradient =
     status === 'success' ? 'var(--gradient-success)' :
@@ -82,6 +73,7 @@ function CallbackContent() {
     }}>
       <div style={{ width: '100%', maxWidth: 440, textAlign: 'center' }}>
 
+        {/* Loading State */}
         {status === 'loading' && (
           <div style={{ animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards', opacity: 0 }}>
             <div style={{
@@ -101,6 +93,7 @@ function CallbackContent() {
           </div>
         )}
 
+        {/* Success State (Magic Redirect) */}
         {status === 'success' && (
           <div style={{ animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards', opacity: 0 }}>
             <div style={{
@@ -115,44 +108,18 @@ function CallbackContent() {
             <p style={{ fontFamily: t.mono, fontSize: 11, color: t.textDim, letterSpacing: '0.15em', marginBottom: 32 }}>
               Facebook authenticated successfully
             </p>
+            
             <div style={{
-              background: t.surface, border: `1px solid ${t.border}`,
-              borderRadius: 2, padding: 20, marginBottom: 12, textAlign: 'left',
+              padding: '16px', background: t.successBg, border: `1px solid ${t.successBorder}`,
+              borderRadius: 2, color: t.success, fontFamily: t.mono, fontSize: 11,
+              letterSpacing: '0.1em', marginBottom: 32,
             }}>
-              <div style={{
-                fontFamily: t.mono, fontSize: 10, color: t.textDim,
-                letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10,
-              }}>Access Token</div>
-              <div style={{ fontFamily: t.mono, fontSize: 11, color: t.gold, wordBreak: 'break-all', lineHeight: 1.6 }}>
-                {token.substring(0, 40)}...
-              </div>
+              Redirecting back to VS Code...
             </div>
-            <button onClick={copyToken} style={{
-              width: '100%', padding: '14px 24px',
-              background: copied ? t.successBg : t.surface,
-              border: `1px solid ${copied ? t.successBorder : t.border}`,
-              borderRadius: 2, color: copied ? t.success : t.text,
-              fontFamily: t.mono, fontSize: 11,
-              letterSpacing: '0.2em', textTransform: 'uppercase' as const,
-              cursor: 'pointer', transition: 'all 0.2s', marginBottom: 32,
-            }}>
-              {copied ? '✓ Copied to clipboard' : 'Copy Access Token'}
-            </button>
-            <button
-              onClick={() => router.push('/')}
-              style={{
-                fontFamily: t.mono, fontSize: 10, color: t.textDim,
-                letterSpacing: '0.2em', textTransform: 'uppercase' as const,
-                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-              }}
-              onMouseEnter={e => (e.currentTarget.style.color = t.gold)}
-              onMouseLeave={e => (e.currentTarget.style.color = t.textDim)}
-            >
-              ← Back to platforms
-            </button>
           </div>
         )}
 
+        {/* Error State */}
         {status === 'error' && (
           <div style={{ animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards', opacity: 0 }}>
             <div style={{

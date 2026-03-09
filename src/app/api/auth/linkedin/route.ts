@@ -2,10 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { code, clientId, clientSecret, redirectUri } = await req.json();
+    const { code, redirectUri } = await req.json();
 
-    if (!code || !clientId || !clientSecret || !redirectUri) {
+    // Read credentials from server env — never exposed to client
+    const clientId = process.env.LINKEDIN_CLIENT_ID;
+    const clientSecret = process.env.LINKEDIN_CLIENT_SECRET;
+
+    if (!code || !redirectUri) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    if (!clientId || !clientSecret) {
+      return NextResponse.json({ error: 'Server misconfiguration: missing LinkedIn credentials' }, { status: 500 });
     }
 
     const params = new URLSearchParams({
@@ -23,8 +31,6 @@ export async function POST(req: NextRequest) {
     });
 
     const data = await response.json();
-
-    console.log('LinkedIn response:', JSON.stringify(data, null, 2));
 
     if (!response.ok) {
       return NextResponse.json(

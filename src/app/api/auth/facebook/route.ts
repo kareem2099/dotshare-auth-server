@@ -2,10 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { code, appId, appSecret, redirectUri } = await req.json();
+    const { code, redirectUri } = await req.json();
 
-    if (!code || !appId || !appSecret || !redirectUri) {
+    // Read credentials from server env — never exposed to client
+    const appId = process.env.FACEBOOK_APP_ID;
+    const appSecret = process.env.FACEBOOK_APP_SECRET;
+
+    if (!code || !redirectUri) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    if (!appId || !appSecret) {
+      return NextResponse.json({ error: 'Server misconfiguration: missing Facebook credentials' }, { status: 500 });
     }
 
     const params = new URLSearchParams({
