@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] — 2026-04-04
+
+### Added
+- **Token refresh endpoint** for X (`/api/auth/x/refresh`) — accepts `refresh_token`, returns new `access_token` + `refresh_token`
+- **Token refresh endpoint** for Reddit (`/api/auth/reddit/refresh`) — Basic Auth flow, returns new `access_token`
+- **Token extension endpoint** for Facebook (`/api/auth/facebook/extend`) — exchanges short-lived token for 60-day long-lived token via `fb_exchange_token` grant
+- `hooks/useOAuthInit.ts` — shared OAuth init logic (PKCE, state, redirect) for all auth pages
+- `hooks/useOAuthCallback.ts` — shared callback logic (token exchange, deep link redirect) for all callback pages
+- `components/AuthPage.tsx` — shared auth UI component, replaces 4 identical platform auth pages
+- `components/CallbackPage.tsx` — shared callback UI component, replaces 4 identical callback pages
+- `expires_in` now included in all VS Code deep links: `vscode://freerave.dotshare/auth?...&expires_in=7200`
+- `refresh_token` included in deep links for X and Reddit
+- `PlatformKey` type exported from `lib/platforms.ts`
+
+### Changed
+- All 4 auth pages (`linkedin`, `x`, `facebook`, `reddit`) reduced to single-line wrappers via `AuthPage` component
+- All 4 callback pages reduced to single-line wrappers via `CallbackPage` component
+- `lib/platforms.ts` — added `envKey` (NEXT_PUBLIC_* variable name) and `titleGradientTo` fields to `PlatformConfig`
+- `lib/platforms.ts` — added `description` field to `PlatformConfig`; removed hardcoded `platforms` array from `page.tsx`
+- `page.tsx` — now reads platform list directly from `PLATFORMS` via `Object.entries()` — adding a new platform requires changes in one file only
+- Deep link builder unified across all platforms using `URLSearchParams`
+
+### Fixed
+- Facebook and LinkedIn deep links were using string interpolation instead of `URLSearchParams` — special characters in tokens could break the URL
+- Scopes displayed on auth pages were hardcoded — now read directly from `PLATFORMS[platform].scopes`
+
+---
+
 ## [1.2.0] — 2026-03-09
 
 ### Added
@@ -95,8 +123,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Bluesky support (identifier + app password flow)
-- Token refresh endpoint for platforms that support it
 - Internationalization (Arabic / English)
 - Rate limiting on API routes
 - Deployment guide for self-hosting on Railway

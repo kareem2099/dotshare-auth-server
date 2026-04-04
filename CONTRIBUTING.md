@@ -37,8 +37,23 @@ All CSS variables are defined in `globals.css` under `:root` (dark) and `[data-t
 
 ### Adding a New Platform
 
-1. Add platform config to `lib/platforms.ts`
-2. Add CSS variables in `globals.css`:
+1. Add platform config to `lib/platforms.ts`:
+   ```typescript
+   platformname: {
+     name: 'Platform Name',
+     icon: 'icon',
+     description: 'Short description',
+     scopes: ['scope.one', 'scope.two'],
+     authUrl: 'https://platform.com/oauth/authorize',
+     envKey: 'NEXT_PUBLIC_PLATFORMNAME_CLIENT_ID',
+     titleGradientTo: '#hexcolor',
+   }
+   ```
+2. Add `PlatformKey` to the union type in `lib/platforms.ts`:
+   ```typescript
+   export type PlatformKey = 'linkedin' | 'x' | 'facebook' | 'reddit' | 'platformname';
+   ```
+3. Add CSS variables in `globals.css`:
    ```css
    --platformname: #hexcolor;
    --platformname-bg: #hexcolor15;
@@ -47,17 +62,45 @@ All CSS variables are defined in `globals.css` under `:root` (dark) and `[data-t
    --platformname-hover: #darkercolor;
    --platformname-corner: #tintcolor;
    ```
-3. Add gradient variables in `globals.css`:
+4. Add gradient variables in `globals.css`:
    ```css
    /* :root */
    --gradient-platformname: radial-gradient(ellipse 80% 60% at 50% -20%, #tintcolor 0%, #080808 60%);
    /* [data-theme="light"] */
    --gradient-platformname: radial-gradient(ellipse 80% 60% at 50% -20%, #lighttint 0%, #faf8f5 60%);
    ```
-4. Add to `t.platform()` union type in `lib/tokens.ts`
-5. Create pages: `app/auth/platformname/page.tsx` and `app/auth/platformname/callback/page.tsx`
+5. Create pages:
+   ```
+   app/auth/platformname/page.tsx
+   app/auth/platformname/callback/page.tsx
+   ```
+   Both are single-line wrappers — no logic needed:
+   ```typescript
+   // page.tsx
+   'use client';
+   import { AuthPage } from '@/components/AuthPage';
+   export default function PlatformNameAuth() {
+     return <AuthPage platform="platformname" />;
+   }
+
+   // callback/page.tsx
+   'use client';
+   import { CallbackPage } from '@/components/CallbackPage';
+   export default function PlatformNameCallback() {
+     return <CallbackPage platform="platformname" />;
+   }
+   ```
 6. Create API route: `app/api/auth/platformname/route.ts`
-7. Add card to `app/page.tsx`
+   - If the platform supports token refresh, also add `app/api/auth/platformname/refresh/route.ts`
+   - If the platform uses token extension (like Facebook), add `app/api/auth/platformname/extend/route.ts`
+7. Add env variables to `.env.example`:
+   ```env
+   NEXT_PUBLIC_PLATFORMNAME_CLIENT_ID=your_client_id
+   PLATFORMNAME_CLIENT_ID=your_client_id
+   PLATFORMNAME_CLIENT_SECRET=your_client_secret
+   ```
+
+> `app/page.tsx` reads from `PLATFORMS` automatically — no changes needed there.
 
 ### Code Style
 
@@ -106,8 +149,10 @@ chore:    build, deps, config
 Examples:
 ```
 feat: add Bluesky OAuth support
+feat: add Bluesky token refresh endpoint
 fix: state mismatch on Reddit callback
 style: update Reddit corner color token
+refactor: extract shared callback logic into useOAuthCallback
 docs: add Reddit setup instructions to README
 ```
 
@@ -123,8 +168,11 @@ When reporting a bug, please include:
 - Expected vs actual behavior
 - Any console errors
 
+> For security vulnerabilities, do **not** open a public issue — see [SECURITY.md](./SECURITY.md) instead.
+
 ---
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+By contributing, you agree that your contributions will be licensed under the Apache-2.0 License.
+```

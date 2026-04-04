@@ -1,12 +1,6 @@
 import { t } from '@/lib/tokens';
+import { PLATFORMS } from '@/lib/platforms';
 import PlatformCard from './components/PlatformCard';
-
-const platforms = [
-  { key: 'linkedin', name: 'LinkedIn', description: 'Professional network', symbol: 'in' },
-  { key: 'x',        name: 'X',        description: 'Public discourse',     symbol: '𝕏' },
-  { key: 'facebook', name: 'Facebook', description: 'Social network',       symbol: 'f'  },
-  { key: 'reddit',   name: 'Reddit',   description: 'Community forums',     symbol: 'r/' },
-];
 
 export default function Home() {
   return (
@@ -38,12 +32,12 @@ export default function Home() {
           animation: 'fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards',
           opacity: 0,
         }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 16, 
-            marginBottom: 32 
-            }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            marginBottom: 32,
+          }}>
             <div style={{ flex: 1, height: '1px', background: `linear-gradient(90deg, transparent, ${t.borderLight})` }} />
             <span style={{
               fontFamily: t.mono,
@@ -80,8 +74,15 @@ export default function Home() {
 
         {/* Platforms */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {platforms.map(({ key, ...rest }, i) => (
-            <PlatformCard key={key} platformKey={key as 'linkedin' | 'x' | 'facebook' | 'reddit'} index={i} {...rest} />
+          {Object.entries(PLATFORMS).map(([key, config], i) => (
+            <PlatformCard
+              key={key}
+              platformKey={key as 'linkedin' | 'x' | 'facebook' | 'reddit'}
+              index={i}
+              name={config.name}
+              description={config.description ?? ''}
+              symbol={config.icon}
+            />
           ))}
         </div>
 

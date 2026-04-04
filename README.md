@@ -6,18 +6,29 @@ A clean, luxury-designed Next.js application that handles OAuth 2.0 flows for al
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?style=flat-square&logo=typescript)
-![License](https://img.shields.io/badge/license-MIT-gold?style=flat-square)
+![License](https://img.shields.io/badge/license-Apache--2.0-gold?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.3.0%20Pro-gold?style=flat-square)
+
+---
+
+## What's New — v1.3.0 "Pro"
+
+- Token refresh endpoints for X and Reddit
+- Token extension endpoint for Facebook (60-day long-lived tokens)
+- `expires_in` + `refresh_token` now included in all VS Code deep links
+- Shared `AuthPage` + `CallbackPage` components — zero duplicated UI code
+- `lib/platforms.ts` is now the single source of truth for everything
 
 ---
 
 ## Supported Platforms
 
-| Platform | Flow | Tokens |
-|----------|------|--------|
-| LinkedIn | OAuth 2.0 | Access Token |
-| X (Twitter) | OAuth 2.0 PKCE | Access + Refresh Token |
-| Facebook | OAuth 2.0 | Access Token |
-| Reddit | OAuth 2.0 + State | Access + Refresh Token |
+| Platform | Flow | Tokens | Refresh |
+|----------|------|--------|---------|
+| LinkedIn | OAuth 2.0 | Access Token | ❌ |
+| X (Twitter) | OAuth 2.0 PKCE | Access + Refresh Token | ✅ `/api/auth/x/refresh` |
+| Facebook | OAuth 2.0 | Access Token | ⚠️ `/api/auth/facebook/extend` (60-day) |
+| Reddit | OAuth 2.0 + State | Access + Refresh Token | ✅ `/api/auth/reddit/refresh` |
 
 ---
 
@@ -26,17 +37,22 @@ A clean, luxury-designed Next.js application that handles OAuth 2.0 flows for al
 - **One-click authentication** — no manual credential entry or token copying
 - **Zero client-side secrets** — all app credentials stored in server `.env`, never exposed to the browser
 - **Auto redirect to VS Code** — tokens sent directly via `vscode://` deep link after auth
+- **Token refresh** for X and Reddit — call `/api/auth/{platform}/refresh` with `{ refreshToken }`
+- **Token extension** for Facebook — call `/api/auth/facebook/extend` with `{ accessToken }` to get a 60-day token
+- **`expires_in` in deep link** — extension can track expiry without polling
 - **PKCE support** for X (Twitter) — code verifier generated client-side
 - **CSRF protection** via `state` parameter for X and Reddit
 - **Dark / Light mode** with system preference detection and localStorage persistence
 - **Luxury UI** — Cormorant Garamond + DM Mono, gold accents, grain overlay, staggered animations
 - **CSS token system** — all colors defined as CSS custom properties via `lib/tokens.ts`
+- **Single source of truth** — adding a new platform requires changes in `lib/platforms.ts` only
 - Deployable to **Vercel** in one command
 
 ---
 
 ## How It Works
 
+### Auth Flow
 ```
 VS Code Extension
   → opens browser to https://dotshare-auth-server.vercel.app/auth/{platform}
@@ -44,8 +60,17 @@ VS Code Extension
   → redirected to platform OAuth page
   → platform redirects back to /auth/{platform}/callback
   → server exchanges code for token using .env credentials
-  → browser redirects to vscode://freerave.dotshare/auth?platform=...&access_token=...
+  → browser redirects to vscode://freerave.dotshare/auth?platform=...&access_token=...&expires_in=...
   → VS Code extension receives token automatically
+```
+
+### Token Refresh Flow
+```
+VS Code Extension detects token expiring (expires_at - now < 5min)
+  → POST /api/auth/x/refresh        { refreshToken }
+  → POST /api/auth/reddit/refresh   { refreshToken }
+  → POST /api/auth/facebook/extend  { accessToken }
+  → receives new access_token (+ new refresh_token for X/Reddit)
 ```
 
 ---
@@ -58,7 +83,6 @@ VS Code Extension
 - npm or yarn
 
 ### Installation
-
 ```bash
 git clone https://github.com/kareem2099/dotshare-auth-server.git
 cd dotshare-auth-server
@@ -66,15 +90,9 @@ npm install
 ```
 
 ### Environment Variables
-
-Copy the example file:
-
 ```bash
 cp .env.example .env.local
 ```
-
-Edit `.env.local`:
-
 ```env
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
 
@@ -99,7 +117,6 @@ REDDIT_CLIENT_SECRET=your_reddit_client_secret
 ```
 
 ### Development
-
 ```bash
 npm run dev
 ```
@@ -111,33 +128,24 @@ Open [http://localhost:3000](http://localhost:3000)
 ## Platform Setup
 
 ### LinkedIn
-
 1. Go to [LinkedIn Developer Portal](https://www.linkedin.com/developers/apps/new)
-2. Create an app and enable:
-   - **Share on LinkedIn**
-   - **Sign In with LinkedIn using OpenID Connect**
+2. Enable **Share on LinkedIn** + **Sign In with LinkedIn using OpenID Connect**
 3. Add Redirect URL: `https://your-domain.com/auth/linkedin/callback`
 4. Copy **Client ID** and **Client Secret** → add to `.env`
 
 ### X (Twitter)
-
 1. Go to [X Developer Portal](https://developer.twitter.com/en/portal/dashboard)
-2. Create a project and app
-3. Enable **OAuth 2.0** with **PKCE**
-4. Set app type to **Public client**
-5. Add Callback URL: `https://your-domain.com/auth/x/callback`
-6. Copy **Client ID** (no secret needed for PKCE) → add to `.env`
+2. Enable **OAuth 2.0** with **PKCE**, app type: **Public client**
+3. Add Callback URL: `https://your-domain.com/auth/x/callback`
+4. Copy **Client ID** (no secret needed) → add to `.env`
 
 ### Facebook
-
 1. Go to [Meta Developer Portal](https://developers.facebook.com/apps)
-2. Create an app → **Business** type
-3. Add **Facebook Login** product
-4. Add Redirect URI: `https://your-domain.com/auth/facebook/callback`
-5. Copy **App ID** and **App Secret** → add to `.env`
+2. Create **Business** app → add **Facebook Login** product
+3. Add Redirect URI: `https://your-domain.com/auth/facebook/callback`
+4. Copy **App ID** and **App Secret** → add to `.env`
 
 ### Reddit
-
 1. Go to [Reddit App Preferences](https://www.reddit.com/prefs/apps)
 2. Create app → type: **web app**
 3. Set redirect URI: `https://your-domain.com/auth/reddit/callback`
@@ -145,52 +153,79 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
+## API Reference
+
+### Token Exchange
+
+| Method | Endpoint | Body |
+|--------|----------|------|
+| POST | `/api/auth/linkedin` | `{ code, redirectUri }` |
+| POST | `/api/auth/x` | `{ code, codeVerifier, redirectUri }` |
+| POST | `/api/auth/facebook` | `{ code, redirectUri }` |
+| POST | `/api/auth/reddit` | `{ code, redirectUri }` |
+
+### Token Refresh / Extend
+
+| Method | Endpoint | Body | Returns |
+|--------|----------|------|---------|
+| POST | `/api/auth/x/refresh` | `{ refreshToken }` | `access_token`, `refresh_token` |
+| POST | `/api/auth/reddit/refresh` | `{ refreshToken }` | `access_token` |
+| POST | `/api/auth/facebook/extend` | `{ accessToken }` | `access_token`, `expires_in` (~60 days) |
+
+---
+
 ## Deployment
 
 ### Vercel (Recommended)
-
 ```bash
 npm i -g vercel
 vercel
 ```
 
-Add all environment variables in the Vercel dashboard under **Settings → Environment Variables**.
+Add all environment variables under **Settings → Environment Variables**.
 
 ---
 
 ## Project Structure
-
 ```
 src/
   app/
-    page.tsx                    # Home — platform selection
-    layout.tsx                  # Root layout with ThemeToggle
+    page.tsx                         # Home — reads platforms from lib/platforms.ts
+    layout.tsx                       # Root layout with ThemeToggle
     auth/
       linkedin/
-        page.tsx                # LinkedIn auth (one-click, reads from env)
-        callback/page.tsx       # LinkedIn callback → auto redirect to VS Code
+        page.tsx                     # → <AuthPage platform="linkedin" />
+        callback/page.tsx            # → <CallbackPage platform="linkedin" />
       x/
-        page.tsx                # X auth (PKCE, one-click)
-        callback/page.tsx       # X callback → auto redirect to VS Code
+        page.tsx                     # → <AuthPage platform="x" />
+        callback/page.tsx            # → <CallbackPage platform="x" />
       facebook/
-        page.tsx                # Facebook auth (one-click, reads from env)
-        callback/page.tsx       # Facebook callback → auto redirect to VS Code
+        page.tsx                     # → <AuthPage platform="facebook" />
+        callback/page.tsx            # → <CallbackPage platform="facebook" />
       reddit/
-        page.tsx                # Reddit auth (one-click, reads from env)
-        callback/page.tsx       # Reddit callback → auto redirect to VS Code
+        page.tsx                     # → <AuthPage platform="reddit" />
+        callback/page.tsx            # → <CallbackPage platform="reddit" />
     api/
       auth/
-        linkedin/route.ts       # LinkedIn token exchange (reads secret from env)
-        x/route.ts              # X token exchange (reads client ID from env)
-        facebook/route.ts       # Facebook token exchange (reads secret from env)
-        reddit/route.ts         # Reddit token exchange (reads secret from env)
+        linkedin/route.ts            # Token exchange
+        x/route.ts                   # Token exchange (PKCE)
+        x/refresh/route.ts           # Token refresh
+        facebook/route.ts            # Token exchange
+        facebook/extend/route.ts     # Token extension (60-day)
+        reddit/route.ts              # Token exchange
+        reddit/refresh/route.ts      # Token refresh
     components/
-      PlatformCard.tsx          # Animated platform link card
-      ThemeToggle.tsx           # Dark/light mode toggle
+      AuthPage.tsx                   # Shared auth UI
+      CallbackPage.tsx               # Shared callback UI
+      PlatformCard.tsx               # Animated platform link card
+      ThemeToggle.tsx                # Dark/light mode toggle
+  hooks/
+    useOAuthInit.ts                  # Shared OAuth init logic (PKCE, state, redirect)
+    useOAuthCallback.ts              # Shared callback logic (exchange, deep link)
   lib/
-    tokens.ts                   # CSS variable references
-    platforms.ts                # Platform config (scopes, auth URLs)
-    pkce.ts                     # PKCE helpers (server-side)
+    tokens.ts                        # CSS variable references
+    platforms.ts                     # Single source of truth for all platform config
+    pkce.ts                          # PKCE helpers (server-side)
 ```
 
 ---
@@ -202,10 +237,10 @@ src/
 - **State parameter** prevents CSRF for X and Reddit
 - **sessionStorage** used only for non-secret PKCE and state values, cleared after use
 - All token exchanges happen **server-side** via Next.js API routes
-- Tokens are passed directly to VS Code via deep link — never logged or stored
+- Tokens passed directly to VS Code via deep link — never logged or stored
 
 ---
 
 ## License
 
-MIT © [kareem2099](https://github.com/kareem2099)
+Apache-2.0 © 2026 [FreeRave (kareem)](https://github.com/kareem2099)
