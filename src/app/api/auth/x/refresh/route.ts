@@ -38,14 +38,32 @@ export async function POST(req: NextRequest) {
     const data = await response.json();
 
     if (!response.ok) {
+      // Handle X API error responses safely
+      let errorMessage = 'X token refresh failed';
+      if (data?.error_description && typeof data.error_description === 'string') {
+        errorMessage = data.error_description;
+      } else if (data?.error) {
+        if (typeof data.error === 'string') {
+          errorMessage = data.error;
+        } else if (typeof data.error === 'object') {
+          errorMessage = JSON.stringify(data.error);
+        } else {
+          errorMessage = String(data.error);
+        }
+      }
       return NextResponse.json(
-        { error: data.error_description || data.error || 'X token refresh failed' },
+        { error: errorMessage },
         { status: response.status }
       );
     }
 
     return NextResponse.json(data);
-  } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('[X Refresh] Token refresh error:', errorMessage);
+    return NextResponse.json(
+      { error: `Token refresh failed: ${errorMessage}` },
+      { status: 500 }
+    );
   }
 }
