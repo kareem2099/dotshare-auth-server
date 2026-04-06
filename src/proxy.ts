@@ -3,7 +3,11 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { ipAddress } from '@vercel/functions/headers';
 
-const redis = Redis.fromEnv();
+// Use Vercel KV's REDIS_URL instead of standard Upstash env vars
+const redis = new Redis({
+  url: process.env.REDIS_URL || '',
+  token: process.env.REDIS_URL || '',
+});
 
 const authInitLimiter = new Ratelimit({
     redis,
