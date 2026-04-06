@@ -35,10 +35,10 @@ export function useOAuthInit(platform: PlatformKey): UseOAuthInitResult {
 
   const handleAuth = async () => {
     const config = PLATFORMS[platform];
-    const clientId = process.env[config.envKey as keyof typeof process.env];
+    const clientId = config.clientId; // Client ID is read from server env and injected at build time
 
     if (!clientId) {
-      setError(`Server configuration error: Missing ${config.envKey} in .env`);
+      setError(`Server configuration error: Missing ${config.name} client ID in .env`);
       return;
     }
 

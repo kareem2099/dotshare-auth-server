@@ -4,7 +4,7 @@ export interface PlatformConfig {
     description?: string;
     scopes: string[];
     authUrl: string;
-    envKey: string;
+    clientId: string;
     titleGradientTo?: string;
 }
 
@@ -15,7 +15,7 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
         description: 'Professional network',
         scopes: ['openid', 'profile', 'email', 'w_member_social'],
         authUrl: 'https://www.linkedin.com/oauth/v2/authorization',
-        envKey: 'NEXT_PUBLIC_LINKEDIN_CLIENT_ID',
+        clientId: 'NEXT_PUBLIC_LINKEDIN_CLIENT_ID',
         titleGradientTo: '#4da3ff',
     },
     x: {
@@ -24,7 +24,7 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
         description: 'Public discourse',
         scopes: ['tweet.read', 'tweet.write', 'users.read', 'offline.access'],
         authUrl: 'https://twitter.com/i/oauth2/authorize',
-        envKey: 'NEXT_PUBLIC_X_CLIENT_ID',
+        clientId: 'NEXT_PUBLIC_X_CLIENT_ID',
     },
     facebook: {
         name: 'Facebook',
@@ -32,7 +32,7 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
         description: 'Social network',
         scopes: ['pages_manage_posts', 'pages_read_engagement', 'publish_to_groups'],
         authUrl: 'https://www.facebook.com/v18.0/dialog/oauth',
-        envKey: 'NEXT_PUBLIC_FACEBOOK_APP_ID',
+        clientId: 'NEXT_PUBLIC_FACEBOOK_APP_ID',
         titleGradientTo: '#42a5f5',
     },
     reddit: {
@@ -41,7 +41,7 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
         description: 'Discussion forums',
         scopes: ['submit', 'read', 'identity'],
         authUrl: 'https://www.reddit.com/api/v1/authorize',
-        envKey: 'NEXT_PUBLIC_REDDIT_CLIENT_ID',
+        clientId: 'NEXT_PUBLIC_REDDIT_CLIENT_ID',
         titleGradientTo: '#ff7043',
     },
 };
