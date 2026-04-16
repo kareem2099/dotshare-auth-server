@@ -67,9 +67,11 @@ export function useOAuthInit(platform: PlatformKey): UseOAuthInitResult {
       authUrl.searchParams.set('code_challenge_method', 'S256');
     }
 
-    // Permanent refresh token — Reddit only
-    if (platform === 'reddit') {
-      authUrl.searchParams.set('duration', 'permanent');
+    // Platform-specific extra parameters (e.g. Reddit's duration=permanent)
+    if (config.authParams) {
+      Object.entries(config.authParams).forEach(([key, value]) => {
+        authUrl.searchParams.set(key, value);
+      });
     }
 
     window.location.href = authUrl.toString();

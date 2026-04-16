@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withFbExpiryMeta } from '@/lib/tokenUtils';
 
 export async function POST(req: NextRequest) {
   try {
@@ -53,7 +54,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json(data);
+    // Enrich with normalised expiry metadata so the client can schedule
+    // the long-lived token exchange before this short-lived token expires.
+    return NextResponse.json(withFbExpiryMeta(data));
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('[Facebook Auth] Token exchange error:', errorMessage);

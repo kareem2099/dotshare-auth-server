@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] — 2026-04-16 "Aegis"
+
+### Added
+- **Proactive Expiry Metadata**: All auth routes now include `expires_at` (Unix ts), `expires_at_iso`, and `should_refresh_soon` (7-day window) in the response.
+- `src/lib/tokenUtils.ts` — Unified utility for normalising provider expiry values and injecting metadata.
+- `src/lib/platforms.ts` — Added `authParams` to `PlatformConfig` for platform-specific auth URL parameters (e.g. Reddit's `duration=permanent`).
+- X (Twitter) rotating refresh token detection: returns a `warning` if a refresh token is missing (rotation failure).
+
+### Changed
+- `hooks/useOAuthInit.ts` — Now data-driven; dynamically appends `authParams` from configuration.
+- `hooks/useOAuthCallback.ts` — Now passes the full enriched metadata package back to VS Code via deep link.
+- Facebook `extend` route — Now normalises the 60-day lifecycle and compute absolute expiry.
+- All auth routes (`linkedin`, `x`, `facebook`, `reddit`) — Now pass through `withExpiryMeta` for consistent client-side tracking.
+
+### Fixed
+- **Reddit Silent Break**: Added `duration=permanent` to ensure refresh tokens are issued (previously tokens died after 1 hour).
+- **Facebook Refresh**: Facebook long-lived tokens were previously returned raw without a computed deadline; now correctly tracked with `expires_at`.
+- **X Refresh**: Eliminated silent token loss on refresh by adding explicit rotation warning and metadata enrichment.
+
+---
+
+## [Unreleased]
+
+### Planned
+- Internationalization (Arabic / English)
+- Rate limiting on API routes
+- Deployment guide for self-hosting on Railway
+
+---
+
 ## [1.3.0] — 2026-04-04
 
 ### Added

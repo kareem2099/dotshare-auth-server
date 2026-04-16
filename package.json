@@ -1,6 +1,6 @@
 {
   "name": "dotshare-auth",
-  "version": "1.1.0",
+  "version": "1.4.0",
   "private": true,
   "scripts": {
     "dev": "next dev",

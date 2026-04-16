@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withFbExpiryMeta } from '@/lib/tokenUtils';
 
 export async function POST(req: NextRequest) {
   try {
@@ -55,8 +56,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Facebook returns: access_token, token_type, expires_in (seconds ~5184000 = 60 days)
-    return NextResponse.json(data);
+    // Facebook long-lived tokens expire in ~60 days (5_184_000 s).
+    // withFbExpiryMeta normalises the raw expires_in (Meta sometimes returns
+    // slightly off values), computes expires_at as a Unix timestamp, and sets
+    // should_refresh_soon = true when fewer than 7 days remain.
+    // The client must persist expires_at and call this endpoint again before
+    // the deadline — Meta does NOT issue refresh tokens for long-lived tokens.
+    return NextResponse.json(withFbExpiryMeta(data));
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('[Facebook Extend] Token extension error:', errorMessage);

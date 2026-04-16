@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withExpiryMeta } from '@/lib/tokenUtils';
 
 export async function POST(req: NextRequest) {
   try {
@@ -52,7 +53,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json(data);
+    // LinkedIn access tokens last 60 days; there is no refresh token.
+    // withExpiryMeta adds expires_at so the client can prompt re-auth before expiry.
+    return NextResponse.json(withExpiryMeta(data));
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('[LinkedIn Auth] Token exchange error:', errorMessage);

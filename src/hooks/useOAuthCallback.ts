@@ -98,7 +98,14 @@ export function useOAuthCallback(platform: PlatformKey): UseOAuthCallbackResult 
             ...(REFRESHABLE_PLATFORMS.includes(platform) && data.refresh_token
               ? { refresh_token: data.refresh_token }
               : {}),
-            ...(data.expires_in ? { expires_in: String(data.expires_in) } : {}),
+            // Absorb all enriched metadata for proactive client-side refresh
+            ...(data.expires_in && { expires_in: String(data.expires_in) }),
+            ...(data.expires_at && { expires_at: String(data.expires_at) }),
+            ...(data.expires_at_iso && { expires_at_iso: String(data.expires_at_iso) }),
+            ...(data.should_refresh_soon !== undefined && { 
+              should_refresh_soon: String(data.should_refresh_soon) 
+            }),
+            ...(data.warning && { warning: String(data.warning) }),
           });
           window.location.href = `vscode://freerave.dotshare/auth?${params.toString()}`;
         }, 1500);

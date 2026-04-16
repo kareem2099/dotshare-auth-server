@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withExpiryMeta } from '@/lib/tokenUtils';
 
 export async function POST(req: NextRequest) {
   try {
@@ -63,7 +64,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json(data);
+    // Reddit tokens expire in 1 hour when duration=temporary (the default).
+    // If the auth flow used duration=permanent, a refresh_token is included;
+    // withExpiryMeta normalises expires_in and adds expires_at either way.
+    return NextResponse.json(withExpiryMeta(data));
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('[Reddit Auth] Token exchange error:', errorMessage);

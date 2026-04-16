@@ -6,6 +6,12 @@ export interface PlatformConfig {
     authUrl: string;
     clientId?: string;
     titleGradientTo?: string;
+    /**
+     * Extra query-string parameters to append to the OAuth authorisation URL.
+     * Used for platform-specific requirements (e.g. Reddit's `duration=permanent`
+     * which controls whether a refresh_token is issued at all).
+     */
+    authParams?: Record<string, string>;
 }
 
 export const PLATFORMS: Record<string, PlatformConfig> = {
@@ -43,6 +49,9 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
         authUrl: 'https://www.reddit.com/api/v1/authorize',
         clientId: process.env.NEXT_PUBLIC_REDDIT_CLIENT_ID,
         titleGradientTo: '#ff7043',
+        authParams: {
+            duration: 'permanent',
+        },
     },
 };
 

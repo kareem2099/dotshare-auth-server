@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withExpiryMeta } from '@/lib/tokenUtils';
 
 export async function POST(req: NextRequest) {
   try {
@@ -57,7 +58,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json(data);
+    // ── X uses rotating refresh tokens ────────────────────────────────────
+    // The OLD refresh_token is burned the moment this request hits Twitter's
+    // servers.  If the network drops before the client receives the response,
+    // the user must re-authenticate.  We surface a clear warning so the client
+    // can handle this edge case rather than silently losing access.
+    if (!data.refresh_token) {
+      console.error(
+        '[X Refresh] CRITICAL: No refresh_token in response — rotating token was consumed but not returned. User must re-authenticate.'
+      );
+      return NextResponse.json(
+        {
+          ...withExpiryMeta(data),
+          warning: 'refresh_token_missing_reauth_required',
+        },
+        { status: 200 } // access_token may still be valid; let client decide
+      );
+    }
+
+    // X access tokens last 2 hours (7200 s); refresh tokens don't expire
+    // on their own but are single-use.  withExpiryMeta normalises expires_in
+    // and adds expires_at so the client can refresh proactively.
+    return NextResponse.json(withExpiryMeta(data));
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('[X Refresh] Token refresh error:', errorMessage);

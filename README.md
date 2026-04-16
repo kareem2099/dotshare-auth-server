@@ -7,17 +7,17 @@ A clean, luxury-designed Next.js application that handles OAuth 2.0 flows for al
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?style=flat-square&logo=typescript)
 ![License](https://img.shields.io/badge/license-Apache--2.0-gold?style=flat-square)
-![Version](https://img.shields.io/badge/version-1.3.0%20Pro-gold?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.4.0%20Aegis-gold?style=flat-square)
 
 ---
 
-## What's New — v1.3.0 "Pro"
+## What's New — v1.4.0 "Aegis"
 
-- Token refresh endpoints for X and Reddit
-- Token extension endpoint for Facebook (60-day long-lived tokens)
-- `expires_in` + `refresh_token` now included in all VS Code deep links
-- Shared `AuthPage` + `CallbackPage` components — zero duplicated UI code
-- `lib/platforms.ts` is now the single source of truth for everything
+- **Proactive Refresh Metadata**: All auth responses now include absolute `expires_at` timestamps and `should_refresh_soon` flags.
+- **X Rotation Shield**: Added detection and warnings for rotating refresh token loss during network interruptions.
+- **Reddit Duration Fix**: Forced `duration=permanent` to ensure refresh tokens are always issued.
+- **Data-Driven Config**: `useOAuthInit` now dynamically handles `authParams` from `PLATFORMS`.
+- **Enriched Deep Links**: VS Code now receives a full metadata package to proactively schedule refreshes.
 
 ---
 
