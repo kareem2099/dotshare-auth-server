@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withExpiryMeta } from '@/lib/tokenUtils';
 
 export async function POST(req: NextRequest) {
+  return NextResponse.json({ error: 'Due to Vercel leaks, we are waiting until they restore access. Sorry for the delay. You can use your own credentials to connect.' }, { status: 503 });
+
   try {
     const { refreshToken } = await req.json();
 
@@ -58,7 +60,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(withExpiryMeta(data));
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = (error as Error)?.message || String(error);
     console.error('[Reddit Refresh] Token refresh error:', errorMessage);
     return NextResponse.json(
       { error: `Token refresh failed: ${errorMessage}` },

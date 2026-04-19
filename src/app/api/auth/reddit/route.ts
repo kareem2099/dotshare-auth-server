@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withExpiryMeta } from '@/lib/tokenUtils';
 
 export async function POST(req: NextRequest) {
+  return NextResponse.json({ error: 'Due to Vercel leaks, we are waiting until they restore access. Sorry for the delay. You can use your own credentials to connect.' }, { status: 503 });
+
   try {
     const { code, redirectUri } = await req.json();
 
@@ -47,9 +49,9 @@ export async function POST(req: NextRequest) {
         } else if (typeof data.error === 'object' && data.error !== null) {
           const errObj = data.error as Record<string, unknown>;
           if (errObj.message && typeof errObj.message === 'string') {
-            errorMessage = errObj.message;
+            errorMessage = errObj.message as string;
           } else if (errObj.reason && typeof errObj.reason === 'string') {
-            errorMessage = errObj.reason;
+            errorMessage = errObj.reason as string;
           } else {
             errorMessage = JSON.stringify(errObj);
           }
@@ -69,7 +71,7 @@ export async function POST(req: NextRequest) {
     // withExpiryMeta normalises expires_in and adds expires_at either way.
     return NextResponse.json(withExpiryMeta(data));
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = (error as Error)?.message || String(error);
     console.error('[Reddit Auth] Token exchange error:', errorMessage);
     return NextResponse.json(
       { error: `Token exchange failed: ${errorMessage}` },
