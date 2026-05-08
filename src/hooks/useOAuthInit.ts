@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { PLATFORMS, PlatformKey } from '@/lib/platforms';
 
 const PKCE_PLATFORMS: PlatformKey[] = ['x'];
@@ -32,6 +33,14 @@ interface UseOAuthInitResult {
 export function useOAuthInit(platform: PlatformKey): UseOAuthInitResult {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const scheme = searchParams.get('scheme');
+    if (scheme) {
+      sessionStorage.setItem('auth_scheme', scheme);
+    }
+  }, [searchParams]);
 
   const handleAuth = async () => {
     const config = PLATFORMS[platform];

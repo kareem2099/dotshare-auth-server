@@ -107,7 +107,9 @@ export function useOAuthCallback(platform: PlatformKey): UseOAuthCallbackResult 
             }),
             ...(data.warning && { warning: String(data.warning) }),
           });
-          window.location.href = `vscode://freerave.dotshare/auth?${params.toString()}`;
+          const scheme = sessionStorage.getItem('auth_scheme') || 'vscode';
+          sessionStorage.removeItem('auth_scheme');
+          window.location.href = `${scheme}://freerave.dotshare/auth?${params.toString()}`;
         }, 1500);
 
       } catch {
