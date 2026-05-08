@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.1] — 2026-05-08 "Universal Gateway"
+
+### Added
+- **Dynamic URI Scheme Support**: Auth server now seamlessly supports multiple VS Code forks (Cursor, VSCodium, Antigravity, etc.).
+- `useOAuthInit.ts` — Captures the `scheme` query parameter from the initial extension request and persists it securely in `sessionStorage`.
+- `useOAuthCallback.ts` — Retrieves the stored `auth_scheme` to construct a dynamic deep link (e.g., `cursor://freerave.dotshare...` instead of hardcoded `vscode://`).
+
+### Changed
+- Fallback scheme defaults to `vscode` if no scheme is provided, ensuring backward compatibility.
+- Cleaned up session storage immediately after deep link execution to maintain strict zero-trace security.
+
+---
+
 ## [1.4.0] — 2026-04-16 "Aegis"
 
 ### Added

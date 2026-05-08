@@ -7,12 +7,13 @@ A clean, luxury-designed Next.js application that handles OAuth 2.0 flows for al
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?style=flat-square&logo=typescript)
 ![License](https://img.shields.io/badge/license-Apache--2.0-gold?style=flat-square)
-![Version](https://img.shields.io/badge/version-1.4.0%20Aegis-gold?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.4.1%20Universal%20Gateway-gold?style=flat-square)
 
 ---
 
-## What's New — v1.4.0 "Aegis"
+## What's New — v1.4.1 "Universal Gateway"
 
+- **Universal Editor Support**: Deep links now dynamically adapt to your editor's URI scheme (Cursor, VSCodium, etc.) — no more hardcoded `vscode://`.
 - **Proactive Refresh Metadata**: All auth responses now include absolute `expires_at` timestamps and `should_refresh_soon` flags.
 - **X Rotation Shield**: Added detection and warnings for rotating refresh token loss during network interruptions.
 - **Reddit Duration Fix**: Forced `duration=permanent` to ensure refresh tokens are always issued.
@@ -36,7 +37,7 @@ A clean, luxury-designed Next.js application that handles OAuth 2.0 flows for al
 
 - **One-click authentication** — no manual credential entry or token copying
 - **Zero client-side secrets** — all app credentials stored in server `.env`, never exposed to the browser
-- **Auto redirect to VS Code** — tokens sent directly via `vscode://` deep link after auth
+- **Auto redirect to any editor** — tokens sent directly via dynamic deep link (e.g. `vscode://` or `cursor://`) after auth
 - **Token refresh** for X and Reddit — call `/api/auth/{platform}/refresh` with `{ refreshToken }`
 - **Token extension** for Facebook — call `/api/auth/facebook/extend` with `{ accessToken }` to get a 60-day token
 - **`expires_in` in deep link** — extension can track expiry without polling
@@ -60,8 +61,8 @@ VS Code Extension
   → redirected to platform OAuth page
   → platform redirects back to /auth/{platform}/callback
   → server exchanges code for token using .env credentials
-  → browser redirects to vscode://freerave.dotshare/auth?platform=...&access_token=...&expires_in=...
-  → VS Code extension receives token automatically
+  → browser redirects to {dynamic_scheme}://freerave.dotshare/auth?platform=...&access_token=...&expires_in=...
+  → VS Code / Cursor / VSCodium extension receives token automatically
 ```
 
 ### Token Refresh Flow
