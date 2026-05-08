@@ -113,7 +113,18 @@ function CallbackContent({ platform }: CallbackPageProps) {
 
 export function CallbackPage({ platform }: CallbackPageProps) {
   return (
-    <Suspense>
+    <Suspense fallback={
+      <main style={{
+        minHeight: '100vh', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', background: '#0a0a0a'
+      }}>
+        <div style={{
+          width: 24, height: 24, border: '1px solid #1f1f1f',
+          borderTop: '1px solid #d4af37', borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite'
+        }} />
+      </main>
+    }>
       <CallbackContent platform={platform} />
     </Suspense>
   );

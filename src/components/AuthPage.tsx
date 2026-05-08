@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { Suspense } from 'react';
 import { t } from '@/lib/tokens';
 import { PLATFORMS, PlatformKey } from '@/lib/platforms';
 import { useOAuthInit } from '@/hooks/useOAuthInit';
@@ -9,7 +10,7 @@ interface AuthPageProps {
   platform: PlatformKey;
 }
 
-export function AuthPage({ platform }: AuthPageProps) {
+function AuthPageContent({ platform }: AuthPageProps) {
   const router = useRouter();
   const config = PLATFORMS[platform];
   const p = t.platform(platform);
@@ -199,5 +200,24 @@ export function AuthPage({ platform }: AuthPageProps) {
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     </main>
+  );
+}
+
+export function AuthPage(props: AuthPageProps) {
+  return (
+    <Suspense fallback={
+      <main style={{
+        minHeight: '100vh', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', background: '#0a0a0a'
+      }}>
+        <div style={{
+          width: 24, height: 24, border: '1px solid #1f1f1f',
+          borderTop: '1px solid #d4af37', borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite'
+        }} />
+      </main>
+    }>
+      <AuthPageContent {...props} />
+    </Suspense>
   );
 }
