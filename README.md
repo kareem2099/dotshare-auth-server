@@ -7,18 +7,16 @@ A clean, luxury-designed Next.js application that handles OAuth 2.0 flows for al
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?style=flat-square&logo=typescript)
 ![License](https://img.shields.io/badge/license-Apache--2.0-gold?style=flat-square)
-![Version](https://img.shields.io/badge/version-1.4.1%20Universal%20Gateway-gold?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.4.2%20DotSuite%20Sync-gold?style=flat-square)
 
 ---
 
-## What's New — v1.4.1 "Universal Gateway"
+## What's New — v1.4.2 "DotSuite Sync"
 
-- **Universal Editor Support**: Deep links now dynamically adapt to your editor's URI scheme (Cursor, VSCodium, etc.) — no more hardcoded `vscode://`.
-- **Proactive Refresh Metadata**: All auth responses now include absolute `expires_at` timestamps and `should_refresh_soon` flags.
-- **X Rotation Shield**: Added detection and warnings for rotating refresh token loss during network interruptions.
-- **Reddit Duration Fix**: Forced `duration=permanent` to ensure refresh tokens are always issued.
-- **Data-Driven Config**: `useOAuthInit` now dynamically handles `authParams` from `PLATFORMS`.
-- **Enriched Deep Links**: VS Code now receives a full metadata package to proactively schedule refreshes.
+- **dotsuite-core OAuth Sync**: After a successful platform OAuth exchange, credentials are automatically pushed to `dotsuite-core` via a secure server-to-server call. The Rust scheduler can now use them immediately for cloud-scheduled posts.
+- **Silent Sync**: A failed sync never blocks the user's OAuth flow — the deep link redirect to VS Code proceeds regardless.
+- **All platforms covered**: LinkedIn, X, Facebook, and Reddit all participate in the sync.
+- **Secure channel**: Server-to-server calls are protected by `X-Internal-Secret` — never exposed to the browser.
 
 ---
 
@@ -63,6 +61,17 @@ VS Code Extension
   → server exchanges code for token using .env credentials
   → browser redirects to {dynamic_scheme}://freerave.dotshare/auth?platform=...&access_token=...&expires_in=...
   → VS Code / Cursor / VSCodium extension receives token automatically
+```
+
+### DotSuite Core Sync Flow (v1.4.2)
+```
+After successful platform token exchange:
+  → auth server POSTs to dotsuite-core /internal/oauth/save
+      headers: X-Internal-Secret, X-User-Id
+      body:    { platform, access_token, refresh_token, expires_at }
+  → dotsuite-core stores encrypted credentials in MongoDB
+  → Rust scheduler can now use tokens immediately for cloud posts
+  → any sync error is swallowed — VS Code deep link proceeds
 ```
 
 ### Token Refresh Flow
@@ -115,6 +124,10 @@ FACEBOOK_APP_SECRET=your_facebook_app_secret
 NEXT_PUBLIC_REDDIT_CLIENT_ID=your_reddit_client_id
 REDDIT_CLIENT_ID=your_reddit_client_id
 REDDIT_CLIENT_SECRET=your_reddit_client_secret
+
+# DotSuite Core sync (v1.4.2)
+DOTSUITE_CORE_URL=https://api.dotsuite.dev
+INTERNAL_SECRET=your_shared_internal_secret
 ```
 
 ### Development

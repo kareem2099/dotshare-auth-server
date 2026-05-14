@@ -3,10 +3,12 @@ import { withExpiryMeta } from '@/lib/tokenUtils';
 
 export async function POST(req: NextRequest) {
   try {
-    const { code, codeVerifier, redirectUri } = await req.json();
+    const { code, codeVerifier, redirectUri, userId } = await req.json();
 
     // Read client ID from server env — never exposed to client
     const clientId = process.env.X_CLIENT_ID;
+    const internalSecret = process.env.INTERNAL_SECRET;
+    const dotsuiteUrl = process.env.DOTSUITE_CORE_URL || 'http://localhost:3001';
 
     if (!code || !codeVerifier || !redirectUri) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -14,6 +16,10 @@ export async function POST(req: NextRequest) {
 
     if (!clientId) {
       return NextResponse.json({ error: 'Server misconfiguration: missing X Client ID' }, { status: 500 });
+    }
+
+    if (!internalSecret) {
+      return NextResponse.json({ error: 'Server misconfiguration: missing internal secret' }, { status: 500 });
     }
 
     const params = new URLSearchParams({
@@ -56,6 +62,45 @@ export async function POST(req: NextRequest) {
         { error: errorMessage },
         { status: response.status }
       );
+    }
+
+    // 🔐 Now sync to dotsuite-core if user is authenticated
+    if (userId) {
+      try {
+        const syncResponse = await fetch(`${dotsuiteUrl}/internal/oauth/save`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Internal-Secret': internalSecret,
+            'X-User-Id': userId,
+          },
+          body: JSON.stringify({
+            platform: 'x',
+            access_token: data.access_token,
+            refresh_token: data.refresh_token || null,
+            expires_in: data.expires_in || 7200, // X default: 2 hours
+          }),
+        });
+
+        if (!syncResponse.ok) {
+          const error = await syncResponse.json();
+          console.error('[X Auth] Failed to sync to dotsuite-core:', error);
+          return NextResponse.json(
+            { error: 'Failed to sync credentials. Please try again.' },
+            { status: 500 }
+          );
+        }
+
+        const syncResult = await syncResponse.json();
+        console.log('[X Auth] ✅ Token synced to dotsuite-core:', syncResult);
+      } catch (syncError) {
+        const errorMessage = syncError instanceof Error ? syncError.message : String(syncError);
+        console.error('[X Auth] Sync error:', errorMessage);
+        return NextResponse.json(
+          { error: `Failed to sync credentials to server. ${errorMessage}` },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json(withExpiryMeta(data));

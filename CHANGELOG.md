@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.2] — 2026-05-14 "DotSuite Sync"
+
+### Added
+- **dotsuite-core OAuth Sync**: After every successful platform token exchange, the auth server now pushes the acquired credentials to `dotsuite-core` via `POST /internal/oauth/save`. This allows the Rust scheduler to immediately use the tokens for cloud-scheduled posts without any additional user action.
+- Sync is guarded by `userId` presence — unauthenticated exchanges never attempt a backend call.
+- `X-Internal-Secret` header used for secure server-to-server communication between auth server and `dotsuite-core`.
+- Sync errors are caught silently — a failed sync does not block the OAuth flow or the deep link redirect to VS Code.
+- All four platform routes updated: `linkedin`, `x`, `facebook`, `reddit`.
+
+---
+
 ## [1.4.1] — 2026-05-08 "Universal Gateway"
 
 ### Added
@@ -40,13 +51,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **X Refresh**: Eliminated silent token loss on refresh by adding explicit rotation warning and metadata enrichment.
 
 ---
-
-## [Unreleased]
-
-### Planned
-- Internationalization (Arabic / English)
-- Rate limiting on API routes
-- Deployment guide for self-hosting on Railway
 
 ---
 
