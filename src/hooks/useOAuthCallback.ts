@@ -3,13 +3,13 @@ import { useSearchParams } from 'next/navigation';
 
 export type CallbackStatus = 'loading' | 'success' | 'error';
 
-export type PlatformKey = 'facebook' | 'linkedin' | 'x' | 'reddit';
+export type PlatformKey = 'linkedin' | 'x';
 
 // Platforms that send a `state` param for CSRF validation
-const STATEFUL_PLATFORMS: PlatformKey[] = ['x', 'reddit'];
+const STATEFUL_PLATFORMS: PlatformKey[] = ['x'];
 
 // Platforms that return a refresh_token
-const REFRESHABLE_PLATFORMS: PlatformKey[] = ['x', 'reddit'];
+const REFRESHABLE_PLATFORMS: PlatformKey[] = ['x'];
 
 interface UseOAuthCallbackResult {
   status: CallbackStatus;

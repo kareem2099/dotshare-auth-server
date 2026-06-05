@@ -7,7 +7,7 @@ A clean, luxury-designed Next.js application that handles OAuth 2.0 flows for al
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?style=flat-square&logo=typescript)
 ![License](https://img.shields.io/badge/license-Apache--2.0-gold?style=flat-square)
-![Version](https://img.shields.io/badge/version-1.4.2%20DotSuite%20Sync-gold?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.4.2%20Platform%20Purge-gold?style=flat-square)
 
 ---
 
@@ -15,7 +15,7 @@ A clean, luxury-designed Next.js application that handles OAuth 2.0 flows for al
 
 - **dotsuite-core OAuth Sync**: After a successful platform OAuth exchange, credentials are automatically pushed to `dotsuite-core` via a secure server-to-server call. The Rust scheduler can now use them immediately for cloud-scheduled posts.
 - **Silent Sync**: A failed sync never blocks the user's OAuth flow — the deep link redirect to VS Code proceeds regardless.
-- **All platforms covered**: LinkedIn, X, Facebook, and Reddit all participate in the sync.
+- **All platforms covered**: LinkedIn and X all participate in the sync.
 - **Secure channel**: Server-to-server calls are protected by `X-Internal-Secret` — never exposed to the browser.
 
 ---
@@ -26,8 +26,6 @@ A clean, luxury-designed Next.js application that handles OAuth 2.0 flows for al
 |----------|------|--------|---------|
 | LinkedIn | OAuth 2.0 | Access Token | ❌ |
 | X (Twitter) | OAuth 2.0 PKCE | Access + Refresh Token | ✅ `/api/auth/x/refresh` |
-| Facebook | OAuth 2.0 | Access Token | ⚠️ `/api/auth/facebook/extend` (60-day) |
-| Reddit | OAuth 2.0 + State | Access + Refresh Token | ✅ `/api/auth/reddit/refresh` |
 
 ---
 
@@ -36,11 +34,10 @@ A clean, luxury-designed Next.js application that handles OAuth 2.0 flows for al
 - **One-click authentication** — no manual credential entry or token copying
 - **Zero client-side secrets** — all app credentials stored in server `.env`, never exposed to the browser
 - **Auto redirect to any editor** — tokens sent directly via dynamic deep link (e.g. `vscode://` or `cursor://`) after auth
-- **Token refresh** for X and Reddit — call `/api/auth/{platform}/refresh` with `{ refreshToken }`
-- **Token extension** for Facebook — call `/api/auth/facebook/extend` with `{ accessToken }` to get a 60-day token
+- **Token refresh** for X — call `/api/auth/x/refresh` with `{ refreshToken }`
 - **`expires_in` in deep link** — extension can track expiry without polling
 - **PKCE support** for X (Twitter) — code verifier generated client-side
-- **CSRF protection** via `state` parameter for X and Reddit
+- **CSRF protection** via `state` parameter for X
 - **Dark / Light mode** with system preference detection and localStorage persistence
 - **Luxury UI** — Cormorant Garamond + DM Mono, gold accents, grain overlay, staggered animations
 - **CSS token system** — all colors defined as CSS custom properties via `lib/tokens.ts`
@@ -78,9 +75,7 @@ After successful platform token exchange:
 ```
 VS Code Extension detects token expiring (expires_at - now < 5min)
   → POST /api/auth/x/refresh        { refreshToken }
-  → POST /api/auth/reddit/refresh   { refreshToken }
-  → POST /api/auth/facebook/extend  { accessToken }
-  → receives new access_token (+ new refresh_token for X/Reddit)
+  → receives new access_token (+ new refresh_token for X)
 ```
 
 ---
@@ -115,16 +110,6 @@ LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
 NEXT_PUBLIC_X_CLIENT_ID=your_x_client_id
 X_CLIENT_ID=your_x_client_id
 
-# Facebook
-NEXT_PUBLIC_FACEBOOK_APP_ID=your_facebook_app_id
-FACEBOOK_APP_ID=your_facebook_app_id
-FACEBOOK_APP_SECRET=your_facebook_app_secret
-
-# Reddit
-NEXT_PUBLIC_REDDIT_CLIENT_ID=your_reddit_client_id
-REDDIT_CLIENT_ID=your_reddit_client_id
-REDDIT_CLIENT_SECRET=your_reddit_client_secret
-
 # DotSuite Core sync (v1.4.2)
 DOTSUITE_CORE_URL=https://api.dotsuite.dev
 INTERNAL_SECRET=your_shared_internal_secret
@@ -153,18 +138,6 @@ Open [http://localhost:3000](http://localhost:3000)
 3. Add Callback URL: `https://your-domain.com/auth/x/callback`
 4. Copy **Client ID** (no secret needed) → add to `.env`
 
-### Facebook
-1. Go to [Meta Developer Portal](https://developers.facebook.com/apps)
-2. Create **Business** app → add **Facebook Login** product
-3. Add Redirect URI: `https://your-domain.com/auth/facebook/callback`
-4. Copy **App ID** and **App Secret** → add to `.env`
-
-### Reddit
-1. Go to [Reddit App Preferences](https://www.reddit.com/prefs/apps)
-2. Create app → type: **web app**
-3. Set redirect URI: `https://your-domain.com/auth/reddit/callback`
-4. Copy **Client ID** and **Client Secret** → add to `.env`
-
 ---
 
 ## API Reference
@@ -175,16 +148,12 @@ Open [http://localhost:3000](http://localhost:3000)
 |--------|----------|------|
 | POST | `/api/auth/linkedin` | `{ code, redirectUri }` |
 | POST | `/api/auth/x` | `{ code, codeVerifier, redirectUri }` |
-| POST | `/api/auth/facebook` | `{ code, redirectUri }` |
-| POST | `/api/auth/reddit` | `{ code, redirectUri }` |
 
 ### Token Refresh / Extend
 
 | Method | Endpoint | Body | Returns |
 |--------|----------|------|---------|
 | POST | `/api/auth/x/refresh` | `{ refreshToken }` | `access_token`, `refresh_token` |
-| POST | `/api/auth/reddit/refresh` | `{ refreshToken }` | `access_token` |
-| POST | `/api/auth/facebook/extend` | `{ accessToken }` | `access_token`, `expires_in` (~60 days) |
 
 ---
 
@@ -213,21 +182,11 @@ src/
       x/
         page.tsx                     # → <AuthPage platform="x" />
         callback/page.tsx            # → <CallbackPage platform="x" />
-      facebook/
-        page.tsx                     # → <AuthPage platform="facebook" />
-        callback/page.tsx            # → <CallbackPage platform="facebook" />
-      reddit/
-        page.tsx                     # → <AuthPage platform="reddit" />
-        callback/page.tsx            # → <CallbackPage platform="reddit" />
     api/
       auth/
         linkedin/route.ts            # Token exchange
         x/route.ts                   # Token exchange (PKCE)
         x/refresh/route.ts           # Token refresh
-        facebook/route.ts            # Token exchange
-        facebook/extend/route.ts     # Token extension (60-day)
-        reddit/route.ts              # Token exchange
-        reddit/refresh/route.ts      # Token refresh
     components/
       AuthPage.tsx                   # Shared auth UI
       CallbackPage.tsx               # Shared callback UI

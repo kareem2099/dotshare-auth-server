@@ -18,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.2] — 2026-06-05 "Platform Purge"
+
+### Removed
+- **Facebook OAuth Flow**: Completely removed the Facebook OAuth adapter, including `src/app/api/auth/facebook/route.ts`, `extend/route.ts`, and the callback pages.
+- **Reddit OAuth Flow**: Completely removed the Reddit OAuth adapter, including `src/app/api/auth/reddit/route.ts`, `refresh/route.ts`, and the callback pages.
+
+### Changed
+- Updated `PlatformCard` UI and internal lists to reflect the removal of these platforms, ensuring alignment with the rest of the DotShare ecosystem.
+
+---
+
 ## [1.4.1] — 2026-05-08 "Universal Gateway"
 
 ### Added

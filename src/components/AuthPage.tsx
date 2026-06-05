@@ -74,7 +74,7 @@ function AuthPageContent({ platform }: AuthPageProps) {
               width: 24, height: 24, background: p.color, borderRadius: 3,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: platform === 'x' ? 'var(--bg)' : 'white',
-              fontFamily: t.mono, fontSize: platform === 'facebook' ? 14 : 11,
+              fontFamily: t.mono, fontSize: 11,
               fontWeight: 700,
             }}>{config.icon}</div>
             <span style={{
@@ -150,23 +150,7 @@ function AuthPageContent({ platform }: AuthPageProps) {
             ) : `Authenticate with ${config.name} →`}
           </button>
 
-          {/* Cancel — Reddit only */}
-          {platform === 'reddit' && !loading && (
-            <button
-              onClick={() => window.close()}
-              style={{
-                padding: '12px 24px', background: 'none',
-                border: `1px solid ${t.borderMedium}`, borderRadius: 2,
-                color: t.textDim, fontFamily: t.mono, fontSize: 11,
-                letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.color = t.text; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = t.borderMedium; e.currentTarget.style.color = t.textDim; }}
-            >
-              Cancel
-            </button>
-          )}
+
         </div>
 
         {/* Scopes */}

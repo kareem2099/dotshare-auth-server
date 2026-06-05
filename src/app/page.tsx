@@ -77,7 +77,7 @@ export default function Home() {
           {Object.entries(PLATFORMS).map(([key, config], i) => (
             <PlatformCard
               key={key}
-              platformKey={key as 'linkedin' | 'x' | 'facebook' | 'reddit'}
+              platformKey={key as 'linkedin' | 'x'}
               index={i}
               name={config.name}
               description={config.description ?? ''}

@@ -7,10 +7,9 @@ import { useOAuthCallback, PlatformKey } from '@/hooks/useOAuthCallback';
 import { PLATFORMS } from '@/lib/platforms';
 
 const GRADIENT_MAP: Record<PlatformKey, string> = {
-  facebook: 'var(--gradient-facebook)',
   linkedin: 'var(--gradient-loading)',
   x:        'var(--gradient-x)',
-  reddit:   'var(--gradient-reddit)',
+
 };
 
 interface CallbackPageProps {

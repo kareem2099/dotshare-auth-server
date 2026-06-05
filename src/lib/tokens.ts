@@ -41,7 +41,7 @@ export const t = {
   mono:        'var(--font-mono)',
 
   // ── Platforms ─────────────────────────────
-  platform: (name: 'linkedin' | 'x' | 'facebook' | 'reddit') => ({
+  platform: (name: 'linkedin' | 'x') => ({
     color:  `var(--${name})`,
     bg:     `var(--${name}-bg)`,
     border: `var(--${name}-border)`,

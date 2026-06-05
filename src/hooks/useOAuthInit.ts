@@ -3,7 +3,7 @@ import { useSearchParams } from 'next/navigation';
 import { PLATFORMS, PlatformKey } from '@/lib/platforms';
 
 const PKCE_PLATFORMS: PlatformKey[] = ['x'];
-const STATEFUL_PLATFORMS: PlatformKey[] = ['x', 'reddit'];
+const STATEFUL_PLATFORMS: PlatformKey[] = ['x'];
 
 function generateState(): string {
   const array = new Uint8Array(16);
@@ -60,7 +60,7 @@ export function useOAuthInit(platform: PlatformKey): UseOAuthInitResult {
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('scope', config.scopes.join(' '));
 
-    // State (CSRF) — X and Reddit
+    // State (CSRF) — X
     if (STATEFUL_PLATFORMS.includes(platform)) {
       const state = generateState();
       sessionStorage.setItem(`${platform}_state`, state);
@@ -76,7 +76,7 @@ export function useOAuthInit(platform: PlatformKey): UseOAuthInitResult {
       authUrl.searchParams.set('code_challenge_method', 'S256');
     }
 
-    // Platform-specific extra parameters (e.g. Reddit's duration=permanent)
+    // Platform-specific extra parameters
     if (config.authParams) {
       Object.entries(config.authParams).forEach(([key, value]) => {
         authUrl.searchParams.set(key, value);

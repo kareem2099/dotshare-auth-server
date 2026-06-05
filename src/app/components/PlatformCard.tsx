@@ -4,7 +4,7 @@ import { t } from '@/lib/tokens';
 import Link from 'next/link';
 import { useState } from 'react';
 
-type PlatformKey = 'linkedin' | 'x' | 'facebook' | 'reddit';
+type PlatformKey = 'linkedin' | 'x';
 
 interface PlatformCardProps {
   platformKey: PlatformKey;
